@@ -2,6 +2,7 @@ package es.upm.tfg.thesisplatform.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,13 +24,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
 
         ex.getBindingResult().getFieldErrors()
                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
-        return errors;
+        return ResponseEntity.badRequest().body(errors);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -53,6 +54,24 @@ public class GlobalExceptionHandler {
                 HttpStatus.UNAUTHORIZED,
                 ex.getMessage());
         problemDetail.setTitle("Invalid credentials");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(StudentProfileNotFoundException.class)
+    public ProblemDetail handleStudentProfileNotFound(StudentProfileNotFoundException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage());
+        problemDetail.setTitle("Student profile not found");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(ForbiddenOperationException.class)
+    public ProblemDetail handleForbiddenOperation(ForbiddenOperationException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN,
+                ex.getMessage());
+        problemDetail.setTitle("Forbidden operation");
         return problemDetail;
     }
 }

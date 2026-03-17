@@ -1,0 +1,13 @@
+package es.upm.tfg.thesisplatform.student.repository;
+
+import es.upm.tfg.thesisplatform.student.domain.StudentProfile;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface StudentProfileRepository extends JpaRepository<StudentProfile, Long> {
+
+    Optional<StudentProfile> findByUserEmail(String email);
+
+    boolean existsByUserEmail(String email);
+}
