@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 @AllArgsConstructor
 @Builder
@@ -24,4 +26,6 @@ public class StudentProfileResponse {
     private DedicationType dedicationType;
     private String additionalInformation;
     private String cvUrl;
+    private List<String> doctoralPrograms;
+    private List<String> researchLines;
 }

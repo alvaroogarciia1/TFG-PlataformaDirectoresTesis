@@ -1,5 +1,7 @@
 package es.upm.tfg.thesisplatform.student.dto;
 
+import java.util.List;
+
 import es.upm.tfg.thesisplatform.student.domain.DedicationType;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -49,4 +51,10 @@ public class StudentProfileRequest {
     @NotBlank(message = "CV reference cannot be blank")
     @Size(max = 500, message = "CV reference must be at most 500 characters")
     private String cvUrl;
+
+    @NotEmpty(message = "At least one doctoral program is required")
+    private List<Long> doctoralProgramIds;
+
+    @NotEmpty(message = "At least one research line is required")
+    private List<Long> researchLineIds;
 }

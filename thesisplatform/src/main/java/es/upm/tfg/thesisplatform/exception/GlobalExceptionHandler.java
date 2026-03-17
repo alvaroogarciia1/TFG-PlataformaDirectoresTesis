@@ -74,4 +74,13 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Forbidden operation");
         return problemDetail;
     }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ProblemDetail handleResourceNotFound(ResourceNotFoundException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage());
+        problemDetail.setTitle("Resource not found");
+        return problemDetail;
+    }
 }
