@@ -83,4 +83,40 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Resource not found");
         return problemDetail;
     }
+
+    @ExceptionHandler(ProfessorProfileNotFoundException.class)
+    public ProblemDetail handleProfessorProfileNotFound(ProfessorProfileNotFoundException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage());
+        problemDetail.setTitle("Professor profile not found");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(ThesisRequestNotFoundException.class)
+    public ProblemDetail handleThesisRequestNotFound(ThesisRequestNotFoundException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage());
+        problemDetail.setTitle("Thesis request not found");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(InvalidThesisRequestOperationException.class)
+    public ProblemDetail handleInvalidThesisRequestOperation(InvalidThesisRequestOperationException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage());
+        problemDetail.setTitle("Invalid thesis request operation");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ProblemDetail handleInvalidToken(InvalidTokenException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage());
+        problemDetail.setTitle("Invalid or expired token");
+        return problemDetail;
+    }
 }

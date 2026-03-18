@@ -2,11 +2,15 @@ package es.upm.tfg.thesisplatform.student.controller;
 
 import es.upm.tfg.thesisplatform.student.dto.StudentProfileRequest;
 import es.upm.tfg.thesisplatform.student.dto.StudentProfileResponse;
+import es.upm.tfg.thesisplatform.student.dto.StudentSearchRequest;
 import es.upm.tfg.thesisplatform.student.service.StudentProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/students")
@@ -15,15 +19,23 @@ public class StudentProfileController {
 
     private final StudentProfileService studentProfileService;
 
+    @PreAuthorize("hasRole('STUDENT')")
     @GetMapping("/me")
     public StudentProfileResponse getMyProfile(Authentication authentication) {
         return studentProfileService.getMyProfile(authentication.getName());
     }
 
+    @PreAuthorize("hasRole('STUDENT')")
     @PutMapping("/me")
     public StudentProfileResponse upsertMyProfile(
             Authentication authentication,
             @Valid @RequestBody StudentProfileRequest request) {
         return studentProfileService.upsertMyProfile(authentication.getName(), request);
+    }
+
+    @PreAuthorize("hasRole('PROFESSOR')")
+    @PostMapping("/search")
+    public List<StudentProfileResponse> search(@RequestBody StudentSearchRequest request) {
+        return studentProfileService.search(request);
     }
 }

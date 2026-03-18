@@ -1,69 +1,65 @@
-package es.upm.tfg.thesisplatform.student.service;
+package es.upm.tfg.thesisplatform.professor.service;
 
 import es.upm.tfg.thesisplatform.catalog.domain.DoctoralProgram;
 import es.upm.tfg.thesisplatform.catalog.domain.ResearchLine;
 import es.upm.tfg.thesisplatform.catalog.repository.DoctoralProgramRepository;
 import es.upm.tfg.thesisplatform.catalog.repository.ResearchLineRepository;
 import es.upm.tfg.thesisplatform.exception.ForbiddenOperationException;
+import es.upm.tfg.thesisplatform.exception.ProfessorProfileNotFoundException;
 import es.upm.tfg.thesisplatform.exception.ResourceNotFoundException;
-import es.upm.tfg.thesisplatform.exception.StudentProfileNotFoundException;
-import es.upm.tfg.thesisplatform.student.domain.StudentProfile;
-import es.upm.tfg.thesisplatform.student.dto.StudentProfileRequest;
-import es.upm.tfg.thesisplatform.student.dto.StudentProfileResponse;
-import es.upm.tfg.thesisplatform.student.dto.StudentSearchRequest;
-import es.upm.tfg.thesisplatform.student.repository.StudentProfileRepository;
+import es.upm.tfg.thesisplatform.professor.domain.ProfessorProfile;
+import es.upm.tfg.thesisplatform.professor.dto.ProfessorProfileRequest;
+import es.upm.tfg.thesisplatform.professor.dto.ProfessorProfileResponse;
+import es.upm.tfg.thesisplatform.professor.dto.ProfessorSearchRequest;
+import es.upm.tfg.thesisplatform.professor.repository.ProfessorProfileRepository;
 import es.upm.tfg.thesisplatform.user.domain.User;
 import es.upm.tfg.thesisplatform.user.domain.UserRole;
 import es.upm.tfg.thesisplatform.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.springframework.stereotype.Service;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class StudentProfileService {
+public class ProfessorProfileService {
 
-        private final StudentProfileRepository studentProfileRepository;
+        private final ProfessorProfileRepository professorProfileRepository;
         private final UserRepository userRepository;
         private final DoctoralProgramRepository doctoralProgramRepository;
         private final ResearchLineRepository researchLineRepository;
 
-        public StudentProfileResponse getMyProfile(String email) {
-                StudentProfile profile = studentProfileRepository.findByUserEmail(email)
-                                .orElseThrow(() -> new StudentProfileNotFoundException(email));
+        public ProfessorProfileResponse getMyProfile(String email) {
+                ProfessorProfile profile = professorProfileRepository.findByUserEmail(email)
+                                .orElseThrow(() -> new ProfessorProfileNotFoundException(email));
 
                 return mapToResponse(profile);
         }
 
-        public StudentProfileResponse upsertMyProfile(String email, StudentProfileRequest request) {
+        public ProfessorProfileResponse upsertMyProfile(String email, ProfessorProfileRequest request) {
                 User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new StudentProfileNotFoundException(email));
+                                .orElseThrow(() -> new ProfessorProfileNotFoundException(email));
 
-                if (user.getRole() != UserRole.STUDENT) {
+                if (user.getRole() != UserRole.PROFESSOR) {
                         throw new ForbiddenOperationException(
-                                        "Only users with STUDENT role can manage a student profile");
+                                        "Only users with PROFESSOR role can manage a professor profile");
                 }
 
-                StudentProfile profile = studentProfileRepository.findByUserEmail(email)
+                ProfessorProfile profile = professorProfileRepository.findByUserEmail(email)
                                 .orElse(
-                                                StudentProfile.builder()
+                                                ProfessorProfile.builder()
                                                                 .user(user)
                                                                 .build());
 
                 profile.setFirstName(request.getFirstName().trim());
                 profile.setLastName(request.getLastName().trim());
-                profile.setOriginInstitution(request.getOriginInstitution().trim());
-                profile.setMotivation(request.getMotivation().trim());
-                profile.setProposedThesisTitle(request.getProposedThesisTitle().trim());
-                profile.setHasFunding(request.getHasFunding());
-                profile.setFundingType(request.getFundingType());
-                profile.setFundingDurationMonths(request.getFundingDurationMonths());
-                profile.setWillingToRelocateToMadrid(request.getWillingToRelocateToMadrid());
-                profile.setDedicationType(request.getDedicationType());
+                profile.setInstitution(request.getInstitution().trim());
+                profile.setDepartment(request.getDepartment());
+                profile.setAvailableToSupervise(request.getAvailableToSupervise());
+                profile.setMaxPhdStudents(request.getMaxPhdStudents());
                 profile.setAdditionalInformation(request.getAdditionalInformation());
                 profile.setCvUrl(request.getCvUrl().trim());
 
@@ -73,7 +69,7 @@ public class StudentProfileService {
 
                 Set<Long> foundDoctoralProgramIds = programs.stream()
                                 .map(DoctoralProgram::getId)
-                                .collect(java.util.stream.Collectors.toSet());
+                                .collect(Collectors.toSet());
 
                 Set<Long> missingDoctoralProgramIds = new HashSet<>(doctoralProgramIds);
                 missingDoctoralProgramIds.removeAll(foundDoctoralProgramIds);
@@ -89,7 +85,7 @@ public class StudentProfileService {
 
                 Set<Long> foundResearchLineIds = researchLines.stream()
                                 .map(ResearchLine::getId)
-                                .collect(java.util.stream.Collectors.toSet());
+                                .collect(Collectors.toSet());
 
                 Set<Long> missingResearchLineIds = new HashSet<>(researchLineIds);
                 missingResearchLineIds.removeAll(foundResearchLineIds);
@@ -102,25 +98,21 @@ public class StudentProfileService {
                 profile.setDoctoralPrograms(programs);
                 profile.setResearchLines(researchLines);
 
-                StudentProfile savedProfile = studentProfileRepository.save(profile);
+                ProfessorProfile savedProfile = professorProfileRepository.save(profile);
 
                 return mapToResponse(savedProfile);
         }
 
-        private StudentProfileResponse mapToResponse(StudentProfile profile) {
-                return StudentProfileResponse.builder()
+        private ProfessorProfileResponse mapToResponse(ProfessorProfile profile) {
+                return ProfessorProfileResponse.builder()
                                 .id(profile.getId())
                                 .email(profile.getUser().getEmail())
                                 .firstName(profile.getFirstName())
                                 .lastName(profile.getLastName())
-                                .originInstitution(profile.getOriginInstitution())
-                                .motivation(profile.getMotivation())
-                                .proposedThesisTitle(profile.getProposedThesisTitle())
-                                .hasFunding(profile.isHasFunding())
-                                .fundingType(profile.getFundingType())
-                                .fundingDurationMonths(profile.getFundingDurationMonths())
-                                .willingToRelocateToMadrid(profile.isWillingToRelocateToMadrid())
-                                .dedicationType(profile.getDedicationType())
+                                .institution(profile.getInstitution())
+                                .department(profile.getDepartment())
+                                .availableToSupervise(profile.isAvailableToSupervise())
+                                .maxPhdStudents(profile.getMaxPhdStudents())
                                 .additionalInformation(profile.getAdditionalInformation())
                                 .cvUrl(profile.getCvUrl())
                                 .doctoralPrograms(
@@ -134,18 +126,16 @@ public class StudentProfileService {
                                 .build();
         }
 
-        public List<StudentProfileResponse> search(StudentSearchRequest request) {
+        public List<ProfessorProfileResponse> search(ProfessorSearchRequest request) {
                 List<Long> programIds = normalizeList(request.getDoctoralProgramIds());
                 List<Long> lineIds = normalizeList(request.getResearchLineIds());
-                String originInstitution = normalizeText(request.getOriginInstitution());
+                String institution = normalizeText(request.getInstitution());
 
-                return studentProfileRepository.search(
+                return professorProfileRepository.search(
                                 programIds,
                                 lineIds,
-                                request.getHasFunding(),
-                                request.getWillingToRelocateToMadrid(),
-                                request.getDedicationType(),
-                                originInstitution).stream()
+                                request.getAvailableToSupervise(),
+                                institution).stream()
                                 .map(this::mapToResponse)
                                 .toList();
         }
