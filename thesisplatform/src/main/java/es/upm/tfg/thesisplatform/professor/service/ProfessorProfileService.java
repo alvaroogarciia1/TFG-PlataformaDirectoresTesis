@@ -12,11 +12,13 @@ import es.upm.tfg.thesisplatform.professor.dto.ProfessorProfileRequest;
 import es.upm.tfg.thesisplatform.professor.dto.ProfessorProfileResponse;
 import es.upm.tfg.thesisplatform.professor.dto.ProfessorSearchRequest;
 import es.upm.tfg.thesisplatform.professor.repository.ProfessorProfileRepository;
+import es.upm.tfg.thesisplatform.storage.FileStorageService;
 import es.upm.tfg.thesisplatform.user.domain.User;
 import es.upm.tfg.thesisplatform.user.domain.UserRole;
 import es.upm.tfg.thesisplatform.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +33,7 @@ public class ProfessorProfileService {
         private final UserRepository userRepository;
         private final DoctoralProgramRepository doctoralProgramRepository;
         private final ResearchLineRepository researchLineRepository;
+        private final FileStorageService fileStorageService;
 
         public ProfessorProfileResponse getMyProfile(String email) {
                 ProfessorProfile profile = professorProfileRepository.findByUserEmail(email)
@@ -149,5 +152,19 @@ public class ProfessorProfileService {
                         return null;
                 }
                 return value.trim();
+        }
+
+        public ProfessorProfileResponse uploadCv(String email, MultipartFile file) {
+
+                ProfessorProfile profile = professorProfileRepository.findByUserEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException("Profile not found"));
+
+                String fileUrl = fileStorageService.saveFile(file, "professors");
+
+                profile.setCvUrl(fileUrl);
+
+                ProfessorProfile saved = professorProfileRepository.save(profile);
+
+                return mapToResponse(saved);
         }
 }

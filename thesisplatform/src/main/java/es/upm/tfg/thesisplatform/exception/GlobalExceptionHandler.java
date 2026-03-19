@@ -119,4 +119,22 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Invalid or expired token");
         return problemDetail;
     }
+
+    @ExceptionHandler(SupervisedThesisNotFoundException.class)
+    public ProblemDetail handleSupervisedThesisNotFound(SupervisedThesisNotFoundException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage());
+        problemDetail.setTitle("Supervised thesis not found");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(InvalidFileException.class)
+    public ProblemDetail handleInvalidFile(InvalidFileException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage());
+        problemDetail.setTitle("Invalid file");
+        return problemDetail;
+    }
 }

@@ -7,6 +7,7 @@ import es.upm.tfg.thesisplatform.catalog.repository.ResearchLineRepository;
 import es.upm.tfg.thesisplatform.exception.ForbiddenOperationException;
 import es.upm.tfg.thesisplatform.exception.ResourceNotFoundException;
 import es.upm.tfg.thesisplatform.exception.StudentProfileNotFoundException;
+import es.upm.tfg.thesisplatform.storage.FileStorageService;
 import es.upm.tfg.thesisplatform.student.domain.StudentProfile;
 import es.upm.tfg.thesisplatform.student.dto.StudentProfileRequest;
 import es.upm.tfg.thesisplatform.student.dto.StudentProfileResponse;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +33,7 @@ public class StudentProfileService {
         private final UserRepository userRepository;
         private final DoctoralProgramRepository doctoralProgramRepository;
         private final ResearchLineRepository researchLineRepository;
+        private final FileStorageService fileStorageService;
 
         public StudentProfileResponse getMyProfile(String email) {
                 StudentProfile profile = studentProfileRepository.findByUserEmail(email)
@@ -159,5 +162,19 @@ public class StudentProfileService {
                         return null;
                 }
                 return value.trim();
+        }
+
+        public StudentProfileResponse uploadCv(String email, MultipartFile file) {
+
+                StudentProfile profile = studentProfileRepository.findByUserEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException("Profile not found"));
+
+                String fileUrl = fileStorageService.saveFile(file, "students");
+
+                profile.setCvUrl(fileUrl);
+
+                StudentProfile saved = studentProfileRepository.save(profile);
+
+                return mapToResponse(saved);
         }
 }

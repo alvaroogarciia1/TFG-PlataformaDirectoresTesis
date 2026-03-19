@@ -43,6 +43,10 @@ public class ThesisRequest {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "initiator", nullable = false)
+    private RequestInitiator initiator;
+
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();

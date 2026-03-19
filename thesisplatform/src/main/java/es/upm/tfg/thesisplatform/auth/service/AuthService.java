@@ -5,6 +5,7 @@ import es.upm.tfg.thesisplatform.auth.dto.LoginRequest;
 import es.upm.tfg.thesisplatform.auth.dto.RegisterRequest;
 import es.upm.tfg.thesisplatform.auth.dto.RegisterResponse;
 import es.upm.tfg.thesisplatform.exception.EmailAlreadyExistsException;
+import es.upm.tfg.thesisplatform.exception.ForbiddenOperationException;
 import es.upm.tfg.thesisplatform.exception.InvalidCredentialsException;
 import es.upm.tfg.thesisplatform.security.JwtService;
 import es.upm.tfg.thesisplatform.user.domain.User;
@@ -50,6 +51,10 @@ public class AuthService {
 
         User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(InvalidCredentialsException::new);
+
+        if (!user.isActive()) {
+            throw new ForbiddenOperationException("User account is deactivated");
+        }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new InvalidCredentialsException();

@@ -1,6 +1,7 @@
 package es.upm.tfg.thesisplatform.thesisrequest.controller;
 
 import es.upm.tfg.thesisplatform.thesisrequest.dto.CreateThesisRequestRequest;
+import es.upm.tfg.thesisplatform.thesisrequest.dto.ProfessorThesisRequestCreate;
 import es.upm.tfg.thesisplatform.thesisrequest.dto.ThesisRequestResponse;
 import es.upm.tfg.thesisplatform.thesisrequest.service.ThesisRequestService;
 import jakarta.validation.Valid;
@@ -18,6 +19,7 @@ public class ThesisRequestController {
 
     private final ThesisRequestService thesisRequestService;
 
+    // Estudiante -> Profesor
     @PreAuthorize("hasRole('STUDENT')")
     @PostMapping
     public ThesisRequestResponse create(
@@ -26,27 +28,31 @@ public class ThesisRequestController {
         return thesisRequestService.create(authentication.getName(), request);
     }
 
-    @PreAuthorize("hasRole('STUDENT')")
+    // Profesor -> Estudiante
+    @PreAuthorize("hasRole('PROFESSOR')")
+    @PostMapping("/professor")
+    public ThesisRequestResponse createFromProfessor(
+            Authentication authentication,
+            @Valid @RequestBody ProfessorThesisRequestCreate request) {
+        return thesisRequestService.createFromProfessor(authentication.getName(), request);
+    }
+
+    // Enviadas por el usuario autenticado
+    @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
     @GetMapping("/sent")
     public List<ThesisRequestResponse> getSentRequests(Authentication authentication) {
         return thesisRequestService.getSentRequests(authentication.getName());
     }
 
-    @PreAuthorize("hasRole('STUDENT')")
-    @PatchMapping("/{id}/cancel")
-    public ThesisRequestResponse cancelRequest(
-            Authentication authentication,
-            @PathVariable Long id) {
-        return thesisRequestService.cancelRequest(authentication.getName(), id);
-    }
-
-    @PreAuthorize("hasRole('PROFESSOR')")
+    // Recibidas por el usuario autenticado
+    @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
     @GetMapping("/received")
     public List<ThesisRequestResponse> getReceivedRequests(Authentication authentication) {
         return thesisRequestService.getReceivedRequests(authentication.getName());
     }
 
-    @PreAuthorize("hasRole('PROFESSOR')")
+    // Aceptar la solicitud recibida
+    @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
     @PatchMapping("/{id}/accept")
     public ThesisRequestResponse acceptRequest(
             Authentication authentication,
@@ -54,11 +60,21 @@ public class ThesisRequestController {
         return thesisRequestService.acceptRequest(authentication.getName(), id);
     }
 
-    @PreAuthorize("hasRole('PROFESSOR')")
+    // Rechazar la solicitud recibida
+    @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
     @PatchMapping("/{id}/reject")
     public ThesisRequestResponse rejectRequest(
             Authentication authentication,
             @PathVariable Long id) {
         return thesisRequestService.rejectRequest(authentication.getName(), id);
+    }
+
+    // Cancelar la solicitud enviada
+    @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
+    @PatchMapping("/{id}/cancel")
+    public ThesisRequestResponse cancelRequest(
+            Authentication authentication,
+            @PathVariable Long id) {
+        return thesisRequestService.cancelRequest(authentication.getName(), id);
     }
 }

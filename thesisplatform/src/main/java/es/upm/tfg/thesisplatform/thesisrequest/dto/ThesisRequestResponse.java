@@ -1,5 +1,6 @@
 package es.upm.tfg.thesisplatform.thesisrequest.dto;
 
+import es.upm.tfg.thesisplatform.thesisrequest.domain.RequestInitiator;
 import es.upm.tfg.thesisplatform.thesisrequest.domain.ThesisRequestStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +25,7 @@ public class ThesisRequestResponse {
     private String subject;
     private String message;
     private ThesisRequestStatus status;
+    private RequestInitiator initiator;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -35,4 +35,15 @@ public class SmtpEmailService implements EmailService {
 
         mailSender.send(message);
     }
+
+    @Override
+    public void sendGenericEmail(String to, String subject, String body) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(from);
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(body);
+
+        mailSender.send(message);
+    }
 }

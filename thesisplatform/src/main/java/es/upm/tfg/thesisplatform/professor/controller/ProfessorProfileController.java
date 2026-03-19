@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -37,5 +38,13 @@ public class ProfessorProfileController {
     @PostMapping("/search")
     public List<ProfessorProfileResponse> search(@RequestBody ProfessorSearchRequest request) {
         return professorProfileService.search(request);
+    }
+
+    @PreAuthorize("hasRole('PROFESSOR')")
+    @PostMapping("/me/cv")
+    public ProfessorProfileResponse uploadCv(
+            Authentication authentication,
+            @RequestParam("file") MultipartFile file) {
+        return professorProfileService.uploadCv(authentication.getName(), file);
     }
 }

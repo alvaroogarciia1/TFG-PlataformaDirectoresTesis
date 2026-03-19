@@ -1,0 +1,2 @@
+ALTER TABLE thesis_request
+ADD COLUMN initiator VARCHAR(20) NOT NULL DEFAULT 'STUDENT';
