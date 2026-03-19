@@ -177,4 +177,11 @@ public class StudentProfileService {
 
                 return mapToResponse(saved);
         }
+
+        public List<StudentProfileResponse> searchByThesisTitle(String title) {
+                return studentProfileRepository.searchByThesisTitle(title)
+                                .stream()
+                                .map(this::mapToResponse)
+                                .toList();
+        }
 }

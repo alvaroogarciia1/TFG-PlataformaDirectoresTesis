@@ -167,4 +167,11 @@ public class ProfessorProfileService {
 
                 return mapToResponse(saved);
         }
+
+        public List<ProfessorProfileResponse> searchByName(String name) {
+                return professorProfileRepository.searchByName(name)
+                                .stream()
+                                .map(this::mapToResponse)
+                                .toList();
+        }
 }

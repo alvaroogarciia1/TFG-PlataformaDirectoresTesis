@@ -15,9 +15,17 @@ public class MatchResultResponse {
     private String email;
     private String fullName;
     private String institution;
-    private double score;
+
+    private double totalScore;
+    private double researchLineScore;
+    private double doctoralProgramScore;
+    private double availabilityScore;
+
     private int matchingResearchLines;
     private int matchingDoctoralPrograms;
+
     private List<String> researchLines;
     private List<String> doctoralPrograms;
+
+    private String matchExplanation;
 }

@@ -47,4 +47,10 @@ public class ProfessorProfileController {
             @RequestParam("file") MultipartFile file) {
         return professorProfileService.uploadCv(authentication.getName(), file);
     }
+
+    @GetMapping("/search")
+    public List<ProfessorProfileResponse> searchByName(
+            @RequestParam(required = false) String name) {
+        return professorProfileService.searchByName(name);
+    }
 }

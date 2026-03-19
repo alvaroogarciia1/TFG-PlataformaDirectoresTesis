@@ -21,146 +21,217 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MatchingService {
 
-    private final StudentProfileRepository studentProfileRepository;
-    private final ProfessorProfileRepository professorProfileRepository;
+        private final StudentProfileRepository studentProfileRepository;
+        private final ProfessorProfileRepository professorProfileRepository;
 
-    public List<MatchResultResponse> matchProfessorsForStudent(String studentEmail) {
-        StudentProfile student = studentProfileRepository.findByUserEmail(studentEmail)
-                .orElseThrow(() -> new StudentProfileNotFoundException(studentEmail));
+        public List<MatchResultResponse> matchProfessorsForStudent(String studentEmail) {
+                StudentProfile student = studentProfileRepository.findByUserEmail(studentEmail)
+                                .orElseThrow(() -> new StudentProfileNotFoundException(studentEmail));
 
-        List<ProfessorProfile> professors = professorProfileRepository.findAll();
+                return professorProfileRepository.findAll().stream()
+                                .map(professor -> mapProfessorMatch(student, professor))
+                                .filter(match -> match.getTotalScore() > 0)
+                                .sorted(Comparator
+                                                .comparingDouble(MatchResultResponse::getTotalScore).reversed()
+                                                .thenComparing(MatchResultResponse::getFullName))
+                                .toList();
+        }
 
-        return professors.stream()
-                .map(professor -> mapProfessorMatch(student, professor))
-                .sorted(Comparator.comparingDouble(MatchResultResponse::getScore).reversed())
-                .toList();
-    }
+        public List<MatchResultResponse> matchStudentsForProfessor(String professorEmail) {
+                ProfessorProfile professor = professorProfileRepository.findByUserEmail(professorEmail)
+                                .orElseThrow(() -> new ProfessorProfileNotFoundException(professorEmail));
 
-    public List<MatchResultResponse> matchStudentsForProfessor(String professorEmail) {
-        ProfessorProfile professor = professorProfileRepository.findByUserEmail(professorEmail)
-                .orElseThrow(() -> new ProfessorProfileNotFoundException(professorEmail));
+                return studentProfileRepository.findAll().stream()
+                                .map(student -> mapStudentMatch(professor, student))
+                                .filter(match -> match.getTotalScore() > 0)
+                                .sorted(Comparator
+                                                .comparingDouble(MatchResultResponse::getTotalScore).reversed()
+                                                .thenComparing(MatchResultResponse::getFullName))
+                                .toList();
+        }
 
-        List<StudentProfile> students = studentProfileRepository.findAll();
+        private MatchResultResponse mapProfessorMatch(StudentProfile student, ProfessorProfile professor) {
+                Set<Long> studentResearchLineIds = student.getResearchLines().stream()
+                                .map(ResearchLine::getId)
+                                .collect(Collectors.toSet());
 
-        return students.stream()
-                .map(student -> mapStudentMatch(professor, student))
-                .sorted(Comparator.comparingDouble(MatchResultResponse::getScore).reversed())
-                .toList();
-    }
+                Set<Long> professorResearchLineIds = professor.getResearchLines().stream()
+                                .map(ResearchLine::getId)
+                                .collect(Collectors.toSet());
 
-    private MatchResultResponse mapProfessorMatch(StudentProfile student, ProfessorProfile professor) {
-        Set<Long> studentResearchLineIds = student.getResearchLines().stream()
-                .map(ResearchLine::getId)
-                .collect(Collectors.toSet());
+                Set<Long> studentProgramIds = student.getDoctoralPrograms().stream()
+                                .map(DoctoralProgram::getId)
+                                .collect(Collectors.toSet());
 
-        Set<Long> professorResearchLineIds = professor.getResearchLines().stream()
-                .map(ResearchLine::getId)
-                .collect(Collectors.toSet());
+                Set<Long> professorProgramIds = professor.getDoctoralPrograms().stream()
+                                .map(DoctoralProgram::getId)
+                                .collect(Collectors.toSet());
 
-        Set<Long> studentProgramIds = student.getDoctoralPrograms().stream()
-                .map(DoctoralProgram::getId)
-                .collect(Collectors.toSet());
+                long matchingResearchLines = professorResearchLineIds.stream()
+                                .filter(studentResearchLineIds::contains)
+                                .count();
 
-        Set<Long> professorProgramIds = professor.getDoctoralPrograms().stream()
-                .map(DoctoralProgram::getId)
-                .collect(Collectors.toSet());
+                long matchingPrograms = professorProgramIds.stream()
+                                .filter(studentProgramIds::contains)
+                                .count();
 
-        long matchingResearchLines = professorResearchLineIds.stream()
-                .filter(studentResearchLineIds::contains)
-                .count();
+                double researchLineScore = studentResearchLineIds.isEmpty()
+                                ? 0
+                                : ((double) matchingResearchLines / studentResearchLineIds.size()) * 50.0;
 
-        long matchingPrograms = professorProgramIds.stream()
-                .filter(studentProgramIds::contains)
-                .count();
+                double doctoralProgramScore = studentProgramIds.isEmpty()
+                                ? 0
+                                : ((double) matchingPrograms / studentProgramIds.size()) * 30.0;
 
-        double researchLineScore = studentResearchLineIds.isEmpty()
-                ? 0
-                : ((double) matchingResearchLines / studentResearchLineIds.size()) * 50.0;
+                double availabilityScore = professor.isAvailableToSupervise() ? 20.0 : 0.0;
 
-        double doctoralProgramScore = studentProgramIds.isEmpty()
-                ? 0
-                : ((double) matchingPrograms / studentProgramIds.size()) * 30.0;
+                double totalScore = researchLineScore + doctoralProgramScore + availabilityScore;
 
-        double availabilityScore = professor.isAvailableToSupervise() ? 20.0 : 0.0;
+                return MatchResultResponse.builder()
+                                .userId(professor.getUser().getId())
+                                .email(professor.getUser().getEmail())
+                                .fullName(professor.getFirstName() + " " + professor.getLastName())
+                                .institution(professor.getInstitution())
+                                .totalScore(round(totalScore))
+                                .researchLineScore(round(researchLineScore))
+                                .doctoralProgramScore(round(doctoralProgramScore))
+                                .availabilityScore(round(availabilityScore))
+                                .matchingResearchLines((int) matchingResearchLines)
+                                .matchingDoctoralPrograms((int) matchingPrograms)
+                                .researchLines(
+                                                professor.getResearchLines().stream()
+                                                                .map(ResearchLine::getName)
+                                                                .toList())
+                                .doctoralPrograms(
+                                                professor.getDoctoralPrograms().stream()
+                                                                .map(DoctoralProgram::getName)
+                                                                .toList())
+                                .matchExplanation(buildProfessorExplanation(
+                                                matchingResearchLines,
+                                                matchingPrograms,
+                                                professor.isAvailableToSupervise()))
+                                .build();
+        }
 
-        double totalScore = researchLineScore + doctoralProgramScore + availabilityScore;
+        private MatchResultResponse mapStudentMatch(ProfessorProfile professor, StudentProfile student) {
+                Set<Long> professorResearchLineIds = professor.getResearchLines().stream()
+                                .map(ResearchLine::getId)
+                                .collect(Collectors.toSet());
 
-        return MatchResultResponse.builder()
-                .userId(professor.getUser().getId())
-                .email(professor.getUser().getEmail())
-                .fullName(professor.getFirstName() + " " + professor.getLastName())
-                .institution(professor.getInstitution())
-                .score(round(totalScore))
-                .matchingResearchLines((int) matchingResearchLines)
-                .matchingDoctoralPrograms((int) matchingPrograms)
-                .researchLines(
-                        professor.getResearchLines().stream()
-                                .map(ResearchLine::getName)
-                                .toList())
-                .doctoralPrograms(
-                        professor.getDoctoralPrograms().stream()
-                                .map(DoctoralProgram::getName)
-                                .toList())
-                .build();
-    }
+                Set<Long> studentResearchLineIds = student.getResearchLines().stream()
+                                .map(ResearchLine::getId)
+                                .collect(Collectors.toSet());
 
-    private MatchResultResponse mapStudentMatch(ProfessorProfile professor, StudentProfile student) {
-        Set<Long> professorResearchLineIds = professor.getResearchLines().stream()
-                .map(ResearchLine::getId)
-                .collect(Collectors.toSet());
+                Set<Long> professorProgramIds = professor.getDoctoralPrograms().stream()
+                                .map(DoctoralProgram::getId)
+                                .collect(Collectors.toSet());
 
-        Set<Long> studentResearchLineIds = student.getResearchLines().stream()
-                .map(ResearchLine::getId)
-                .collect(Collectors.toSet());
+                Set<Long> studentProgramIds = student.getDoctoralPrograms().stream()
+                                .map(DoctoralProgram::getId)
+                                .collect(Collectors.toSet());
 
-        Set<Long> professorProgramIds = professor.getDoctoralPrograms().stream()
-                .map(DoctoralProgram::getId)
-                .collect(Collectors.toSet());
+                long matchingResearchLines = studentResearchLineIds.stream()
+                                .filter(professorResearchLineIds::contains)
+                                .count();
 
-        Set<Long> studentProgramIds = student.getDoctoralPrograms().stream()
-                .map(DoctoralProgram::getId)
-                .collect(Collectors.toSet());
+                long matchingPrograms = studentProgramIds.stream()
+                                .filter(professorProgramIds::contains)
+                                .count();
 
-        long matchingResearchLines = studentResearchLineIds.stream()
-                .filter(professorResearchLineIds::contains)
-                .count();
+                double researchLineScore = professorResearchLineIds.isEmpty()
+                                ? 0
+                                : ((double) matchingResearchLines / professorResearchLineIds.size()) * 50.0;
 
-        long matchingPrograms = studentProgramIds.stream()
-                .filter(professorProgramIds::contains)
-                .count();
+                double doctoralProgramScore = professorProgramIds.isEmpty()
+                                ? 0
+                                : ((double) matchingPrograms / professorProgramIds.size()) * 30.0;
 
-        double researchLineScore = professorResearchLineIds.isEmpty()
-                ? 0
-                : ((double) matchingResearchLines / professorResearchLineIds.size()) * 50.0;
+                double availabilityScore = professor.isAvailableToSupervise() ? 20.0 : 0.0;
 
-        double doctoralProgramScore = professorProgramIds.isEmpty()
-                ? 0
-                : ((double) matchingPrograms / professorProgramIds.size()) * 30.0;
+                double totalScore = researchLineScore + doctoralProgramScore + availabilityScore;
 
-        double availabilityScore = professor.isAvailableToSupervise() ? 20.0 : 0.0;
+                return MatchResultResponse.builder()
+                                .userId(student.getUser().getId())
+                                .email(student.getUser().getEmail())
+                                .fullName(student.getFirstName() + " " + student.getLastName())
+                                .institution(student.getOriginInstitution())
+                                .totalScore(round(totalScore))
+                                .researchLineScore(round(researchLineScore))
+                                .doctoralProgramScore(round(doctoralProgramScore))
+                                .availabilityScore(round(availabilityScore))
+                                .matchingResearchLines((int) matchingResearchLines)
+                                .matchingDoctoralPrograms((int) matchingPrograms)
+                                .researchLines(
+                                                student.getResearchLines().stream()
+                                                                .map(ResearchLine::getName)
+                                                                .toList())
+                                .doctoralPrograms(
+                                                student.getDoctoralPrograms().stream()
+                                                                .map(DoctoralProgram::getName)
+                                                                .toList())
+                                .matchExplanation(buildStudentExplanation(
+                                                matchingResearchLines,
+                                                matchingPrograms,
+                                                professor.isAvailableToSupervise()))
+                                .build();
+        }
 
-        double totalScore = researchLineScore + doctoralProgramScore + availabilityScore;
+        private String buildProfessorExplanation(long matchingResearchLines, long matchingPrograms, boolean available) {
+                StringBuilder explanation = new StringBuilder("Match based on ");
 
-        return MatchResultResponse.builder()
-                .userId(student.getUser().getId())
-                .email(student.getUser().getEmail())
-                .fullName(student.getFirstName() + " " + student.getLastName())
-                .institution(student.getOriginInstitution())
-                .score(round(totalScore))
-                .matchingResearchLines((int) matchingResearchLines)
-                .matchingDoctoralPrograms((int) matchingPrograms)
-                .researchLines(
-                        student.getResearchLines().stream()
-                                .map(ResearchLine::getName)
-                                .toList())
-                .doctoralPrograms(
-                        student.getDoctoralPrograms().stream()
-                                .map(DoctoralProgram::getName)
-                                .toList())
-                .build();
-    }
+                explanation.append(matchingResearchLines)
+                                .append(" shared research line");
+                if (matchingResearchLines != 1) {
+                        explanation.append("s");
+                }
 
-    private double round(double value) {
-        return Math.round(value * 100.0) / 100.0;
-    }
+                explanation.append(" and ")
+                                .append(matchingPrograms)
+                                .append(" shared doctoral program");
+                if (matchingPrograms != 1) {
+                        explanation.append("s");
+                }
+
+                explanation.append(". ");
+
+                if (available) {
+                        explanation.append("Professor is currently available to supervise.");
+                } else {
+                        explanation.append("Professor is currently marked as not available to supervise.");
+                }
+
+                return explanation.toString();
+        }
+
+        private String buildStudentExplanation(long matchingResearchLines, long matchingPrograms,
+                        boolean availableProfessor) {
+                StringBuilder explanation = new StringBuilder("Match based on ");
+
+                explanation.append(matchingResearchLines)
+                                .append(" shared research line");
+                if (matchingResearchLines != 1) {
+                        explanation.append("s");
+                }
+
+                explanation.append(" and ")
+                                .append(matchingPrograms)
+                                .append(" shared doctoral program");
+                if (matchingPrograms != 1) {
+                        explanation.append("s");
+                }
+
+                explanation.append(". ");
+
+                if (availableProfessor) {
+                        explanation.append("Professor is currently available to supervise.");
+                } else {
+                        explanation.append("Professor is currently marked as not available to supervise.");
+                }
+
+                return explanation.toString();
+        }
+
+        private double round(double value) {
+                return Math.round(value * 100.0) / 100.0;
+        }
 }
