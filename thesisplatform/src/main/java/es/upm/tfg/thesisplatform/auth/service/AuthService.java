@@ -9,6 +9,7 @@ import es.upm.tfg.thesisplatform.exception.ForbiddenOperationException;
 import es.upm.tfg.thesisplatform.exception.InvalidCredentialsException;
 import es.upm.tfg.thesisplatform.security.JwtService;
 import es.upm.tfg.thesisplatform.user.domain.User;
+import es.upm.tfg.thesisplatform.user.domain.UserRole;
 import es.upm.tfg.thesisplatform.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +28,11 @@ public class AuthService {
 
         if (userRepository.existsByEmail(normalizedEmail)) {
             throw new EmailAlreadyExistsException(normalizedEmail);
+        }
+
+        if (request.getRole() == null ||
+                (request.getRole() != UserRole.STUDENT && request.getRole() != UserRole.PROFESSOR)) {
+            throw new ForbiddenOperationException("Only STUDENT or PROFESSOR roles are allowed for self-registration");
         }
 
         User user = User.builder()
