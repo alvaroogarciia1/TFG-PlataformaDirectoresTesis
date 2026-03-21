@@ -30,3 +30,12 @@ export function clearSession() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
 }
+
+export function isAuthenticated(): boolean {
+  return !!getToken();
+}
+
+export function logout() {
+  clearSession();
+  window.location.href = "/?success=logout";
+}

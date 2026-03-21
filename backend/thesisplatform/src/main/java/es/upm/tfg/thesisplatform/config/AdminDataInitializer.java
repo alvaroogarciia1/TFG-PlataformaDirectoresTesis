@@ -28,8 +28,6 @@ public class AdminDataInitializer implements CommandLineRunner {
                     .build();
 
             userRepository.save(admin);
-
-            System.out.println("Admin user created: " + adminEmail);
         }
     }
 }

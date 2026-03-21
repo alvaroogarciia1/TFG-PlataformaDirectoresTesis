@@ -1,6 +1,8 @@
 package es.upm.tfg.thesisplatform.professor.repository;
 
 import es.upm.tfg.thesisplatform.professor.domain.ProfessorProfile;
+
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -37,4 +39,7 @@ public interface ProfessorProfileRepository extends JpaRepository<ProfessorProfi
                  OR LOWER(CONCAT(p.firstName, ' ', p.lastName)) LIKE LOWER(CONCAT('%', :name, '%')))
       """)
   List<ProfessorProfile> searchByName(@Param("name") String name);
+
+  @EntityGraph(attributePaths = { "doctoralPrograms", "researchLines", "user" })
+  Optional<ProfessorProfile> findDetailedByUserEmail(String email);
 }

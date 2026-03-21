@@ -1,11 +1,19 @@
 import { API_BASE_URL } from "@/lib/constants";
 import { getToken } from "@/lib/auth";
 
+function isJsonLike(contentType: string | null) {
+    return !!contentType && (
+        contentType.includes("application/json") ||
+        contentType.includes("application/problem+json")
+    );
+}
+
 export async function apiFetch<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    includeAuth: boolean = true
 ): Promise<T> {
-    const token = getToken();
+    const token = includeAuth ? getToken() : null;
 
     const headers = new Headers(options.headers || {});
     const isFormData = options.body instanceof FormData;
@@ -29,7 +37,7 @@ export async function apiFetch<T>(
         try {
             const contentType = response.headers.get("content-type");
 
-            if (contentType && contentType.includes("application/json")) {
+            if (isJsonLike(contentType)) {
                 const data = await response.json();
 
                 if (data.errors && typeof data.errors === "object") {
@@ -65,7 +73,7 @@ export async function apiFetch<T>(
 
     const contentType = response.headers.get("content-type");
 
-    if (contentType && contentType.includes("application/json")) {
+    if (isJsonLike(contentType)) {
         return response.json() as Promise<T>;
     }
 

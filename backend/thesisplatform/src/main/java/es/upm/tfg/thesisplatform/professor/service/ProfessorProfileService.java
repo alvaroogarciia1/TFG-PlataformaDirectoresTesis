@@ -18,6 +18,7 @@ import es.upm.tfg.thesisplatform.user.domain.UserRole;
 import es.upm.tfg.thesisplatform.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashSet;
@@ -35,8 +36,9 @@ public class ProfessorProfileService {
         private final ResearchLineRepository researchLineRepository;
         private final FileStorageService fileStorageService;
 
+        @Transactional(readOnly = true)
         public ProfessorProfileResponse getMyProfile(String email) {
-                ProfessorProfile profile = professorProfileRepository.findByUserEmail(email)
+                ProfessorProfile profile = professorProfileRepository.findDetailedByUserEmail(email)
                                 .orElseThrow(() -> new ProfessorProfileNotFoundException(email));
 
                 return mapToResponse(profile);

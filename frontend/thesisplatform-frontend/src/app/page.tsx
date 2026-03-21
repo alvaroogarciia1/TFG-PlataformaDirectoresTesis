@@ -2,13 +2,13 @@ import Link from "next/link";
 
 type HomePageProps = {
   searchParams?: Promise<{
-    registered?: string;
+    success?: string;
   }>;
 };
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const params = searchParams ? await searchParams : undefined;
-  const registered = params?.registered === "true";
+  const success = params?.success;
 
   return (
     <main className="mx-auto flex min-h-screen max-w-5xl items-center px-6">
@@ -28,9 +28,15 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           automático.
         </p>
 
-        {registered && (
+        {success === "registered" && (
           <div className="max-w-2xl rounded-xl border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-800">
             Registro completado correctamente. Ya puedes iniciar sesión.
+          </div>
+        )}
+
+        {success === "logout" && (
+          <div className="max-w-2xl rounded-xl border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-800">
+            Sesión cerrada correctamente.
           </div>
         )}
 
