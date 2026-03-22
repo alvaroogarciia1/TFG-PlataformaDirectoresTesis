@@ -44,4 +44,9 @@ public class AdminController {
     public List<ThesisRequestResponse> getAllRequests() {
         return adminService.getAllRequests();
     }
+
+    @DeleteMapping("/users/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        adminService.deleteUser(id);
+    }
 }

@@ -40,6 +40,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </div>
         )}
 
+        {success === "reset-sent" && (
+          <div className="max-w-2xl rounded-xl border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-800">
+            Sigue las instrucciones que se han enviado al correo electrónico que has introducido.
+          </div>
+        )}
+
         <div className="flex flex-wrap gap-3">
           <Link
             href="/login"

@@ -2,6 +2,7 @@ package es.upm.tfg.thesisplatform.student.repository;
 
 import es.upm.tfg.thesisplatform.student.domain.DedicationType;
 import es.upm.tfg.thesisplatform.student.domain.StudentProfile;
+import es.upm.tfg.thesisplatform.user.domain.User;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,12 +14,17 @@ import java.util.Optional;
 
 public interface StudentProfileRepository extends JpaRepository<StudentProfile, Long> {
 
-  @EntityGraph(attributePaths = { "doctoralPrograms", "researchLines", "user" })
+  @EntityGraph(attributePaths = { "user", "doctoralPrograms", "researchLines" })
+  Optional<StudentProfile> findDetailedByUserId(Long userId);
+
+  @EntityGraph(attributePaths = { "user", "doctoralPrograms", "researchLines" })
   Optional<StudentProfile> findDetailedByUserEmail(String email);
 
   Optional<StudentProfile> findByUserEmail(String email);
 
   Optional<StudentProfile> findByUserId(Long userId);
+
+  Optional<StudentProfile> findByUser(User user);
 
   boolean existsByUserEmail(String email);
 

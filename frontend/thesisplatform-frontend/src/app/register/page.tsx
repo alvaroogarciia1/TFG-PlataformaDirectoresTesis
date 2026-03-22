@@ -12,6 +12,7 @@ export default function RegisterPage() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [role, setRole] = useState<UserRole>("STUDENT");
     const [error, setError] = useState("");
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -31,6 +32,14 @@ export default function RegisterPage() {
 
         if (!password.trim()) {
             errors.password = "Introduce una contraseña.";
+        }
+
+        if (!confirmPassword.trim()) {
+            errors.confirmPassword = "Confirma la contraseña.";
+        }
+
+        if (password && confirmPassword && password !== confirmPassword) {
+            errors.confirmPassword = "Las contraseñas no coinciden.";
         }
 
         if (!role) {
@@ -86,7 +95,11 @@ export default function RegisterPage() {
             if (err instanceof Error) {
                 if (err.message.includes("already exists")) {
                     setError("Ya existe una cuenta registrada con ese correo.");
-                } else if (err.message.includes("el tamaño debe estar entre")) {
+                } else if (
+                    err.message.includes("must be at least 6 characters") ||
+                    err.message.includes("size must be between") ||
+                    err.message.includes("el tamaño debe estar entre")
+                ) {
                     setError("La contraseña debe tener entre 6 y 100 caracteres.");
                 } else {
                     setError(err.message);
@@ -146,10 +159,39 @@ export default function RegisterPage() {
                                 if (fieldErrors.password) {
                                     setFieldErrors((prev) => ({ ...prev, password: "" }));
                                 }
+                                if (fieldErrors.confirmPassword) {
+                                    setFieldErrors((prev) => ({ ...prev, confirmPassword: "" }));
+                                }
                             }}
                         />
                         {fieldErrors.password && (
                             <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="mb-1 block text-sm font-medium">
+                            Confirmar contraseña
+                        </label>
+                        <input
+                            type="password"
+                            className={`w-full rounded-xl border px-3 py-2 outline-none ${fieldErrors.confirmPassword ? "border-red-500 bg-red-50" : ""
+                                }`}
+                            value={confirmPassword}
+                            onChange={(e) => {
+                                setConfirmPassword(e.target.value);
+                                if (fieldErrors.confirmPassword) {
+                                    setFieldErrors((prev) => ({
+                                        ...prev,
+                                        confirmPassword: "",
+                                    }));
+                                }
+                            }}
+                        />
+                        {fieldErrors.confirmPassword && (
+                            <p className="mt-1 text-sm text-red-600">
+                                {fieldErrors.confirmPassword}
+                            </p>
                         )}
                     </div>
 

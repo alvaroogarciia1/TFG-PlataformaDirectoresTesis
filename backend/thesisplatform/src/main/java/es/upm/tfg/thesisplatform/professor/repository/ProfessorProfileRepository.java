@@ -1,6 +1,7 @@
 package es.upm.tfg.thesisplatform.professor.repository;
 
 import es.upm.tfg.thesisplatform.professor.domain.ProfessorProfile;
+import es.upm.tfg.thesisplatform.user.domain.User;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +16,8 @@ public interface ProfessorProfileRepository extends JpaRepository<ProfessorProfi
   Optional<ProfessorProfile> findByUserEmail(String email);
 
   Optional<ProfessorProfile> findByUserId(Long userId);
+
+  Optional<ProfessorProfile> findByUser(User user);
 
   boolean existsByUserEmail(String email);
 
@@ -40,6 +43,9 @@ public interface ProfessorProfileRepository extends JpaRepository<ProfessorProfi
       """)
   List<ProfessorProfile> searchByName(@Param("name") String name);
 
-  @EntityGraph(attributePaths = { "doctoralPrograms", "researchLines", "user" })
+  @EntityGraph(attributePaths = { "user", "doctoralPrograms", "researchLines" })
+  Optional<ProfessorProfile> findDetailedByUserId(Long userId);
+
+  @EntityGraph(attributePaths = { "user", "doctoralPrograms", "researchLines" })
   Optional<ProfessorProfile> findDetailedByUserEmail(String email);
 }

@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { saveSession } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { AuthResponse } from "@/types/auth";
 
 export default function LoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+
+    const resetSuccess = searchParams.get("resetSuccess");
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -63,6 +66,11 @@ export default function LoginPage() {
                 return;
             }
 
+            if (response.role === "ADMIN") {
+                router.push("/admin/dashboard");
+                return;
+            }
+
             router.push("/dashboard");
         } catch (err) {
             if (err instanceof Error) {
@@ -95,6 +103,12 @@ export default function LoginPage() {
                 <p className="mb-6 text-sm text-gray-600">
                     Accede a la plataforma con tu cuenta.
                 </p>
+
+                {resetSuccess === "true" && (
+                    <div className="mb-4 rounded-xl border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-700">
+                        La contraseña se ha actualizado correctamente. Ya puedes iniciar sesión.
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -144,6 +158,13 @@ export default function LoginPage() {
                     >
                         {loading ? "Entrando..." : "Entrar"}
                     </button>
+
+                    <Link
+                        href="/forgot-password"
+                        className="block text-center text-sm text-gray-500 transition hover:text-gray-800"
+                    >
+                        ¿Has olvidado tu contraseña?
+                    </Link>
                 </form>
             </div>
         </main>
