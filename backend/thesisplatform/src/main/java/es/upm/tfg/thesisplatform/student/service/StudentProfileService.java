@@ -5,6 +5,7 @@ import es.upm.tfg.thesisplatform.catalog.domain.ResearchLine;
 import es.upm.tfg.thesisplatform.catalog.repository.DoctoralProgramRepository;
 import es.upm.tfg.thesisplatform.catalog.repository.ResearchLineRepository;
 import es.upm.tfg.thesisplatform.exception.ForbiddenOperationException;
+import es.upm.tfg.thesisplatform.exception.InvalidFileException;
 import es.upm.tfg.thesisplatform.exception.ResourceNotFoundException;
 import es.upm.tfg.thesisplatform.exception.StudentProfileNotFoundException;
 import es.upm.tfg.thesisplatform.storage.FileStorageService;
@@ -18,10 +19,14 @@ import es.upm.tfg.thesisplatform.user.domain.UserRole;
 import es.upm.tfg.thesisplatform.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -88,21 +93,14 @@ public class StudentProfileService {
                                         "Doctoral programs not found: " + missingDoctoralProgramIds);
                 }
 
-                List<Long> researchLineIds = request.getResearchLineIds();
-                Set<ResearchLine> researchLines = new HashSet<>(
-                                researchLineRepository.findAllById(researchLineIds));
-
-                Set<Long> foundResearchLineIds = researchLines.stream()
-                                .map(ResearchLine::getId)
+                Set<ResearchLine> researchLines = request.getResearchLines().stream()
+                                .map(name -> {
+                                        return researchLineRepository.findByNameIgnoreCase(name.trim())
+                                                        .orElseGet(() -> researchLineRepository.save(
+                                                                        ResearchLine.builder().name(name.trim())
+                                                                                        .build()));
+                                })
                                 .collect(java.util.stream.Collectors.toSet());
-
-                Set<Long> missingResearchLineIds = new HashSet<>(researchLineIds);
-                missingResearchLineIds.removeAll(foundResearchLineIds);
-
-                if (!missingResearchLineIds.isEmpty()) {
-                        throw new ResourceNotFoundException(
-                                        "Research lines not found: " + missingResearchLineIds);
-                }
 
                 profile.setDoctoralPrograms(programs);
                 profile.setResearchLines(researchLines);
@@ -185,5 +183,71 @@ public class StudentProfileService {
                                 .stream()
                                 .map(this::mapToResponse)
                                 .toList();
+        }
+
+        public Resource getMyCvFile(String email) {
+                StudentProfile profile = studentProfileRepository.findDetailedByUserEmail(email)
+                                .orElseThrow(() -> new StudentProfileNotFoundException(email));
+
+                try {
+                        Path path = Paths.get(profile.getCvUrl());
+                        return new UrlResource(path.toUri());
+                } catch (Exception e) {
+                        throw new RuntimeException("Error loading CV");
+                }
+        }
+
+        @Transactional
+        public StudentProfileResponse createProfileWithCv(
+                        String email,
+                        StudentProfileRequest request,
+                        MultipartFile file) {
+
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+                if (studentProfileRepository.findByUserId(user.getId()).isPresent()) {
+                        throw new ForbiddenOperationException("Student profile already exists");
+                }
+
+                if (file == null || file.isEmpty()) {
+                        throw new InvalidFileException("CV file is required");
+                }
+
+                String cvUrl = fileStorageService.saveFile(file, "students");
+
+                List<DoctoralProgram> doctoralPrograms = doctoralProgramRepository
+                                .findAllById(request.getDoctoralProgramIds());
+
+                Set<ResearchLine> researchLines = request.getResearchLines().stream()
+                                .map(name -> {
+                                        return researchLineRepository.findByNameIgnoreCase(name.trim())
+                                                        .orElseGet(() -> researchLineRepository.save(
+                                                                        ResearchLine.builder().name(name.trim())
+                                                                                        .build()));
+                                })
+                                .collect(java.util.stream.Collectors.toSet());
+
+                StudentProfile profile = StudentProfile.builder()
+                                .user(user)
+                                .firstName(request.getFirstName())
+                                .lastName(request.getLastName())
+                                .originInstitution(request.getOriginInstitution())
+                                .motivation(request.getMotivation())
+                                .proposedThesisTitle(request.getProposedThesisTitle())
+                                .hasFunding(request.getHasFunding())
+                                .fundingType(request.getFundingType())
+                                .fundingDurationMonths(request.getFundingDurationMonths())
+                                .willingToRelocateToMadrid(request.getWillingToRelocateToMadrid())
+                                .dedicationType(request.getDedicationType())
+                                .additionalInformation(request.getAdditionalInformation())
+                                .cvUrl(cvUrl)
+                                .doctoralPrograms(new HashSet<>(doctoralPrograms))
+                                .researchLines(researchLines)
+                                .build();
+
+                StudentProfile saved = studentProfileRepository.save(profile);
+
+                return mapToResponse(saved);
         }
 }

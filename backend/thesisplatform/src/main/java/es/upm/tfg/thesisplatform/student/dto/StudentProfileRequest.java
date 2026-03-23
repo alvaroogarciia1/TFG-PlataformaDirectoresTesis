@@ -56,5 +56,5 @@ public class StudentProfileRequest {
     private List<Long> doctoralProgramIds;
 
     @NotEmpty(message = "At least one research line is required")
-    private List<Long> researchLineIds;
+    private List<String> researchLines;
 }

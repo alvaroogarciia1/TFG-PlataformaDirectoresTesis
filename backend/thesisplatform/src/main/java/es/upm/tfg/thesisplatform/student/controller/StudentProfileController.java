@@ -6,6 +6,11 @@ import es.upm.tfg.thesisplatform.student.dto.StudentSearchRequest;
 import es.upm.tfg.thesisplatform.student.service.StudentProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -52,5 +57,27 @@ public class StudentProfileController {
     public List<StudentProfileResponse> searchByThesisTitle(
             @RequestParam(required = false) String title) {
         return studentProfileService.searchByThesisTitle(title);
+    }
+
+    @GetMapping("/me/cv/download")
+    public ResponseEntity<Resource> downloadMyCv(Authentication authentication) {
+        String email = authentication.getName();
+        Resource file = studentProfileService.getMyCvFile(email);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cv.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(file);
+    }
+
+    @PostMapping(value = "/me/setup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public StudentProfileResponse setupProfile(
+            @RequestPart("data") StudentProfileRequest request,
+            @RequestPart("file") MultipartFile file,
+            Authentication authentication) {
+
+        String email = authentication.getName();
+
+        return studentProfileService.createProfileWithCv(email, request, file);
     }
 }

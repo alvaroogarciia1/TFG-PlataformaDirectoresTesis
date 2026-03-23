@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
 export default function ResetPasswordPage() {
@@ -11,8 +11,11 @@ export default function ResetPasswordPage() {
 
     const token = searchParams.get("token");
 
-    const [newPassword, setNewPassword] = useState("");
+    const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     const [error, setError] = useState("");
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
@@ -25,24 +28,26 @@ export default function ResetPasswordPage() {
 
         const errors: Record<string, string> = {};
 
-        if (!token) {
-            errors.token = "El enlace de recuperación no es válido.";
-        }
-
-        if (!newPassword.trim()) {
-            errors.newPassword = "Introduce una nueva contraseña.";
+        if (!password.trim()) {
+            errors.password = "Introduce una contraseña.";
         }
 
         if (!confirmPassword.trim()) {
-            errors.confirmPassword = "Confirma la nueva contraseña.";
+            errors.confirmPassword = "Confirma la contraseña.";
         }
 
-        if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+        if (password && confirmPassword && password !== confirmPassword) {
             errors.confirmPassword = "Las contraseñas no coinciden.";
         }
 
         if (Object.keys(errors).length > 0) {
             setFieldErrors(errors);
+            setLoading(false);
+            return;
+        }
+
+        if (!token) {
+            setError("Token inválido o expirado.");
             setLoading(false);
             return;
         }
@@ -54,7 +59,7 @@ export default function ResetPasswordPage() {
                     method: "POST",
                     body: JSON.stringify({
                         token,
-                        newPassword,
+                        newPassword: password,
                     }),
                 },
                 false
@@ -64,21 +69,15 @@ export default function ResetPasswordPage() {
         } catch (err) {
             if (err instanceof Error) {
                 if (
-                    err.message.includes("size must be between") ||
-                    err.message.includes("must be at least 6 characters")
+                    err.message.includes("must be at least") ||
+                    err.message.includes("size must be between")
                 ) {
                     setError("La contraseña debe tener entre 6 y 100 caracteres.");
-                } else if (
-                    err.message.includes("Invalid token") ||
-                    err.message.includes("Token expired") ||
-                    err.message.includes("Token already used")
-                ) {
-                    setError("El enlace no es válido, ha caducado o ya ha sido utilizado.");
                 } else {
                     setError(err.message);
                 }
             } else {
-                setError("No se ha podido restablecer la contraseña.");
+                setError("No se ha podido restablecer la contraseña");
             }
         } finally {
             setLoading(false);
@@ -88,68 +87,90 @@ export default function ResetPasswordPage() {
     return (
         <main className="mx-auto flex min-h-screen max-w-md items-center px-6">
             <div className="w-full rounded-2xl border p-6 shadow-sm">
-                <Link
-                    href="/login"
-                    className="mb-4 inline-block text-sm text-gray-500 transition hover:text-gray-800"
-                >
-                    ← Volver al inicio de sesión
-                </Link>
+                <h1 className="mb-2 text-2xl font-semibold">
+                    Restablecer contraseña
+                </h1>
 
-                <h1 className="mb-2 text-2xl font-semibold">Nueva contraseña</h1>
                 <p className="mb-6 text-sm text-gray-600">
-                    Introduce tu nueva contraseña para restablecer el acceso.
+                    Introduce tu nueva contraseña.
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {fieldErrors.token && (
-                        <p className="text-sm text-red-600">{fieldErrors.token}</p>
-                    )}
-
+                    {/* PASSWORD */}
                     <div>
                         <label className="mb-1 block text-sm font-medium">
                             Nueva contraseña
                         </label>
-                        <input
-                            type="password"
-                            className={`w-full rounded-xl border px-3 py-2 outline-none ${fieldErrors.newPassword ? "border-red-500 bg-red-50" : ""
-                                }`}
-                            value={newPassword}
-                            onChange={(e) => {
-                                setNewPassword(e.target.value);
-                                if (fieldErrors.newPassword) {
-                                    setFieldErrors((prev) => ({ ...prev, newPassword: "" }));
-                                }
-                                if (fieldErrors.confirmPassword) {
-                                    setFieldErrors((prev) => ({ ...prev, confirmPassword: "" }));
-                                }
-                            }}
-                        />
-                        {fieldErrors.newPassword && (
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                className={`w-full rounded-xl border px-3 py-2 pr-11 outline-none ${fieldErrors.password ? "border-red-500 bg-red-50" : ""
+                                    }`}
+                                value={password}
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    if (fieldErrors.password) {
+                                        setFieldErrors((prev) => ({ ...prev, password: "" }));
+                                    }
+                                }}
+                            />
+
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800"
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+
+                        {fieldErrors.password && (
                             <p className="mt-1 text-sm text-red-600">
-                                {fieldErrors.newPassword}
+                                {fieldErrors.password}
                             </p>
                         )}
                     </div>
 
+                    {/* CONFIRM PASSWORD */}
                     <div>
                         <label className="mb-1 block text-sm font-medium">
-                            Confirmar nueva contraseña
+                            Confirmar contraseña
                         </label>
-                        <input
-                            type="password"
-                            className={`w-full rounded-xl border px-3 py-2 outline-none ${fieldErrors.confirmPassword ? "border-red-500 bg-red-50" : ""
-                                }`}
-                            value={confirmPassword}
-                            onChange={(e) => {
-                                setConfirmPassword(e.target.value);
-                                if (fieldErrors.confirmPassword) {
-                                    setFieldErrors((prev) => ({
-                                        ...prev,
-                                        confirmPassword: "",
-                                    }));
+
+                        <div className="relative">
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                className={`w-full rounded-xl border px-3 py-2 pr-11 outline-none ${fieldErrors.confirmPassword
+                                        ? "border-red-500 bg-red-50"
+                                        : ""
+                                    }`}
+                                value={confirmPassword}
+                                onChange={(e) => {
+                                    setConfirmPassword(e.target.value);
+                                    if (fieldErrors.confirmPassword) {
+                                        setFieldErrors((prev) => ({
+                                            ...prev,
+                                            confirmPassword: "",
+                                        }));
+                                    }
+                                }}
+                            />
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setShowConfirmPassword((prev) => !prev)
                                 }
-                            }}
-                        />
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800"
+                            >
+                                {showConfirmPassword ? (
+                                    <EyeOff size={18} />
+                                ) : (
+                                    <Eye size={18} />
+                                )}
+                            </button>
+                        </div>
+
                         {fieldErrors.confirmPassword && (
                             <p className="mt-1 text-sm text-red-600">
                                 {fieldErrors.confirmPassword}
@@ -164,7 +185,7 @@ export default function ResetPasswordPage() {
                         disabled={loading}
                         className="w-full rounded-xl border px-4 py-2 font-medium transition hover:bg-gray-50 disabled:opacity-60"
                     >
-                        {loading ? "Guardando..." : "Guardar nueva contraseña"}
+                        {loading ? "Guardando..." : "Actualizar contraseña"}
                     </button>
                 </form>
             </div>

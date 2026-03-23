@@ -40,18 +40,10 @@ export default function ForgotPasswordPage() {
                 },
                 false
             );
-
             router.push("/?success=reset-sent");
+
         } catch (err) {
-            if (err instanceof Error) {
-                if (err.message.includes("User not found")) {
-                    setError("No existe ninguna cuenta asociada a ese correo.");
-                } else {
-                    setError(err.message);
-                }
-            } else {
-                setError("No se ha podido enviar el correo de recuperación.");
-            }
+            setError("No se ha podido enviar el correo. Inténtalo más tarde.");
         } finally {
             setLoading(false);
         }

@@ -6,8 +6,12 @@ import es.upm.tfg.thesisplatform.professor.dto.ProfessorSearchRequest;
 import es.upm.tfg.thesisplatform.professor.service.ProfessorProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -52,5 +56,27 @@ public class ProfessorProfileController {
     public List<ProfessorProfileResponse> searchByName(
             @RequestParam(required = false) String name) {
         return professorProfileService.searchByName(name);
+    }
+
+    @GetMapping("/me/cv/download")
+    public ResponseEntity<Resource> downloadMyCv(Authentication authentication) {
+        String email = authentication.getName();
+        Resource file = professorProfileService.getMyCvFile(email);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cv.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(file);
+    }
+
+    @PostMapping(value = "/me/setup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ProfessorProfileResponse setupProfile(
+            @RequestPart("data") ProfessorProfileRequest request,
+            @RequestPart("file") MultipartFile file,
+            Authentication authentication) {
+
+        String email = authentication.getName();
+
+        return professorProfileService.createProfileWithCv(email, request, file);
     }
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import { saveSession } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { AuthResponse } from "@/types/auth";
@@ -15,6 +16,7 @@ export default function LoginPage() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
@@ -132,18 +134,28 @@ export default function LoginPage() {
 
                     <div>
                         <label className="mb-1 block text-sm font-medium">Contraseña</label>
-                        <input
-                            type="password"
-                            className={`w-full rounded-xl border px-3 py-2 outline-none ${fieldErrors.password ? "border-red-500 bg-red-50" : ""
-                                }`}
-                            value={password}
-                            onChange={(e) => {
-                                setPassword(e.target.value);
-                                if (fieldErrors.password) {
-                                    setFieldErrors((prev) => ({ ...prev, password: "" }));
-                                }
-                            }}
-                        />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                className={`w-full rounded-xl border px-3 py-2 pr-11 outline-none ${fieldErrors.password ? "border-red-500 bg-red-50" : ""
+                                    }`}
+                                value={password}
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    if (fieldErrors.password) {
+                                        setFieldErrors((prev) => ({ ...prev, password: "" }));
+                                    }
+                                }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 transition hover:text-gray-800"
+                                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
                         {fieldErrors.password && (
                             <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
                         )}

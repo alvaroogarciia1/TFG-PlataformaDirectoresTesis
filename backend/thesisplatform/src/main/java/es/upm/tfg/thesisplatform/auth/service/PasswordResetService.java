@@ -5,7 +5,6 @@ import es.upm.tfg.thesisplatform.auth.dto.ForgotPasswordRequest;
 import es.upm.tfg.thesisplatform.auth.dto.ResetPasswordRequest;
 import es.upm.tfg.thesisplatform.auth.repository.PasswordResetTokenRepository;
 import es.upm.tfg.thesisplatform.exception.InvalidTokenException;
-import es.upm.tfg.thesisplatform.exception.ResourceNotFoundException;
 import es.upm.tfg.thesisplatform.mail.EmailService;
 import es.upm.tfg.thesisplatform.user.domain.User;
 import es.upm.tfg.thesisplatform.user.repository.UserRepository;
@@ -27,8 +26,11 @@ public class PasswordResetService {
 
     public void forgotPassword(ForgotPasswordRequest request) {
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findByEmail(request.getEmail()).orElse(null);
+
+        if (user == null) {
+            return;
+        }
 
         tokenRepository.deleteByUserId(user.getId());
 

@@ -11,6 +11,29 @@ export default function ProfessorProfilePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    async function handleDownloadCv(url: string) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error("No se ha podido descargar el CV.");
+            }
+
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = blobUrl;
+            link.download = "cv_profesor.pdf";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "No se ha podido descargar el CV.");
+        }
+    }
+
     useEffect(() => {
         async function loadProfile() {
             if (!isAuthenticated()) {
@@ -19,7 +42,6 @@ export default function ProfessorProfilePage() {
             }
 
             const user = getUser();
-
             if (!user) {
                 router.replace("/login");
                 return;
@@ -40,10 +62,7 @@ export default function ProfessorProfilePage() {
                         return;
                     }
 
-                    if (
-                        err.message.includes("Forbidden") ||
-                        err.message.includes("Error 403")
-                    ) {
+                    if (err.message.includes("Forbidden") || err.message.includes("Error 403")) {
                         clearSession();
                         router.replace("/login");
                         return;
@@ -100,8 +119,62 @@ export default function ProfessorProfilePage() {
                         <p><strong>Departamento:</strong> {profile.department || "-"}</p>
                         <p><strong>Disponible para dirigir:</strong> {profile.availableToSupervise ? "Sí" : "No"}</p>
                         <p><strong>Máx. doctorandos:</strong> {profile.maxPhdStudents ?? "-"}</p>
-                        <p><strong>CV:</strong> {profile.cvUrl}</p>
+
+                        <div>
+                            <strong>CV:</strong>{" "}
+                            {profile.cvUrl ? (
+                                <div className="mt-2 flex gap-4">
+                                    <a
+                                        href={profile.cvUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-blue-600 underline"
+                                    >
+                                        Ver CV
+                                    </a>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDownloadCv(profile.cvUrl)}
+                                        className="text-green-600 underline"
+                                    >
+                                        Descargar CV
+                                    </button>
+                                </div>
+                            ) : (
+                                "No disponible"
+                            )}
+                        </div>
+
                         <p><strong>Información adicional:</strong> {profile.additionalInformation || "-"}</p>
+
+                        <div>
+                            <strong>Programas de doctorado:</strong>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                                {(profile.doctoralPrograms || []).map((program: string) => (
+                                    <span
+                                        key={program}
+                                        className="rounded-full border px-3 py-1 text-sm"
+                                    >
+                                        {program}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <strong>Líneas de investigación:</strong>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                                {(profile.researchLines || []).map((line: string) => (
+                                    <span
+                                        key={line}
+                                        className="rounded-full border px-3 py-1 text-sm"
+                                    >
+                                        {line}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="flex gap-3">
