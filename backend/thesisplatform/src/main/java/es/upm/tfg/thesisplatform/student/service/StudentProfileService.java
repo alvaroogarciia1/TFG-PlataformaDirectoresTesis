@@ -137,6 +137,7 @@ public class StudentProfileService {
                                 .build();
         }
 
+        @Transactional(readOnly = true)
         public List<StudentProfileResponse> search(StudentSearchRequest request) {
                 List<Long> programIds = normalizeList(request.getDoctoralProgramIds());
                 List<Long> lineIds = normalizeList(request.getResearchLineIds());
@@ -148,7 +149,8 @@ public class StudentProfileService {
                                 request.getHasFunding(),
                                 request.getWillingToRelocateToMadrid(),
                                 request.getDedicationType(),
-                                originInstitution).stream()
+                                originInstitution)
+                                .stream()
                                 .map(this::mapToResponse)
                                 .toList();
         }
@@ -178,6 +180,7 @@ public class StudentProfileService {
                 return mapToResponse(saved);
         }
 
+        @Transactional(readOnly = true)
         public List<StudentProfileResponse> searchByThesisTitle(String title) {
                 return studentProfileRepository.searchByThesisTitle(title)
                                 .stream()

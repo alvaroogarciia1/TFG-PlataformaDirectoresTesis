@@ -1,7 +1,6 @@
 export interface DoctoralProgram {
     id: number;
     name: string;
-    institution: string;
 }
 
 export interface ResearchLine {

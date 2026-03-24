@@ -11,6 +11,7 @@ import es.upm.tfg.thesisplatform.student.domain.StudentProfile;
 import es.upm.tfg.thesisplatform.student.repository.StudentProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
@@ -24,6 +25,7 @@ public class MatchingService {
         private final StudentProfileRepository studentProfileRepository;
         private final ProfessorProfileRepository professorProfileRepository;
 
+        @Transactional(readOnly = true)
         public List<MatchResultResponse> matchProfessorsForStudent(String studentEmail) {
                 StudentProfile student = studentProfileRepository.findByUserEmail(studentEmail)
                                 .orElseThrow(() -> new StudentProfileNotFoundException(studentEmail));
@@ -37,6 +39,7 @@ public class MatchingService {
                                 .toList();
         }
 
+        @Transactional(readOnly = true)
         public List<MatchResultResponse> matchStudentsForProfessor(String professorEmail) {
                 ProfessorProfile professor = professorProfileRepository.findByUserEmail(professorEmail)
                                 .orElseThrow(() -> new ProfessorProfileNotFoundException(professorEmail));

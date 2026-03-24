@@ -127,6 +127,7 @@ public class ProfessorProfileService {
                                 .build();
         }
 
+        @Transactional(readOnly = true)
         public List<ProfessorProfileResponse> search(ProfessorSearchRequest request) {
                 List<Long> programIds = normalizeList(request.getDoctoralProgramIds());
                 List<Long> lineIds = normalizeList(request.getResearchLineIds());
@@ -136,7 +137,8 @@ public class ProfessorProfileService {
                                 programIds,
                                 lineIds,
                                 request.getAvailableToSupervise(),
-                                institution).stream()
+                                institution)
+                                .stream()
                                 .map(this::mapToResponse)
                                 .toList();
         }
@@ -166,6 +168,7 @@ public class ProfessorProfileService {
                 return mapToResponse(saved);
         }
 
+        @Transactional(readOnly = true)
         public List<ProfessorProfileResponse> searchByName(String name) {
                 return professorProfileRepository.searchByName(name)
                                 .stream()
