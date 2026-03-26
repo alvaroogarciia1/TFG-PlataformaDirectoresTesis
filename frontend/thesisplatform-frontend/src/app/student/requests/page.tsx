@@ -88,41 +88,41 @@ export default function StudentRequestsPage() {
     }
 
     return (
-        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-white">
+        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-gray-900">
             <div className="mb-8 flex items-start gap-4">
                 <button
                     onClick={() => router.push("/student/dashboard")}
-                    className="flex h-14 w-14 items-center justify-center rounded-full border border-white text-2xl transition hover:bg-white/10"
+                    className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-400 text-2xl text-gray-900 transition hover:bg-gray-100"
                 >
                     ←
                 </button>
 
                 <div className="flex-1">
                     <h1 className="mb-3 text-3xl font-bold">Solicitudes</h1>
-                    <p className="max-w-4xl text-lg italic text-gray-300">
+                    <p className="max-w-4xl text-lg italic text-gray-600">
                         Aquí puedes consultar tus solicitudes enviadas y recibidas, revisar su detalle
                         y gestionar las que estén pendientes.
                     </p>
                 </div>
             </div>
 
-            <section className="overflow-hidden rounded-[2rem] border border-white bg-transparent">
+            <section className="overflow-hidden rounded-[2rem] border border-gray-300 bg-white">
                 <table className="w-full border-collapse">
                     <thead>
-                        <tr className="bg-white/5">
-                            <th className="border-b border-r border-white px-4 py-5 text-left text-lg font-semibold text-white">
+                        <tr className="bg-gray-100">
+                            <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
                                 Tipo
                             </th>
-                            <th className="border-b border-r border-white px-4 py-5 text-left text-lg font-semibold text-white">
+                            <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
                                 Profesor
                             </th>
-                            <th className="border-b border-r border-white px-4 py-5 text-left text-lg font-semibold text-white">
+                            <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
                                 Asunto
                             </th>
-                            <th className="border-b border-r border-white px-4 py-5 text-left text-lg font-semibold text-white">
+                            <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
                                 Estado
                             </th>
-                            <th className="border-b border-white px-4 py-5 text-left text-lg font-semibold text-white">
+                            <th className="border-b border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
                                 Detalle
                             </th>
                         </tr>
@@ -142,23 +142,23 @@ export default function StudentRequestsPage() {
                             </tr>
                         ) : (
                             allRequests.map((req) => (
-                                <tr key={`${req.direction}-${req.id}`} className="border-t border-white">
-                                    <td className="border-r border-white px-4 py-5">
+                                <tr key={`${req.direction}-${req.id}`} className="border-t border-gray-300">
+                                    <td className="border-r border-gray-300 px-4 py-5">
                                         {req.direction === "sent" ? "Enviada" : "Recibida"}
                                     </td>
-                                    <td className="border-r border-white px-4 py-5">
+                                    <td className="border-r border-gray-300 px-4 py-5">
                                         {req.professorFullName}
                                     </td>
-                                    <td className="border-r border-white px-4 py-5">
+                                    <td className="border-r border-gray-300 px-4 py-5">
                                         {req.subject}
                                     </td>
-                                    <td className="border-r border-white px-4 py-5">
+                                    <td className="border-r border-gray-300 px-4 py-5">
                                         {formatStatus(req.status)}
                                     </td>
                                     <td className="px-4 py-5">
                                         <button
                                             onClick={() => setSelectedRequest(req)}
-                                            className="rounded-xl border border-white px-5 py-2 text-white transition hover:bg-white/10"
+                                            className="rounded-xl border border-gray-400 px-5 py-2 text-gray-900 transition hover:bg-gray-100"
                                         >
                                             Ver detalle
                                         </button>
@@ -174,7 +174,7 @@ export default function StudentRequestsPage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
                     <div className="w-full max-w-2xl rounded-[2rem] border border-white bg-black p-6 shadow-2xl">
                         <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-2xl font-bold">Detalle de solicitud</h2>
+                            <h2 className="text-2xl font-bold text-white">Detalle de solicitud</h2>
                             <button
                                 onClick={() => setSelectedRequest(null)}
                                 className="rounded-xl border border-white px-4 py-2 text-white transition hover:bg-white/10"
