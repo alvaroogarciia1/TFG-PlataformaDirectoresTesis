@@ -78,17 +78,28 @@ public class MatchingService {
                                 .filter(studentProgramIds::contains)
                                 .count();
 
-                double researchLineScore = studentResearchLineIds.isEmpty()
+                int maxResearchLines = Math.max(studentResearchLineIds.size(), professorResearchLineIds.size());
+                double researchLineScore = maxResearchLines == 0
                                 ? 0
-                                : ((double) matchingResearchLines / studentResearchLineIds.size()) * 50.0;
+                                : ((double) matchingResearchLines / maxResearchLines) * 50.0;
 
-                double doctoralProgramScore = studentProgramIds.isEmpty()
+                int maxPrograms = Math.max(studentProgramIds.size(), professorProgramIds.size());
+                double doctoralProgramScore = maxPrograms == 0
                                 ? 0
-                                : ((double) matchingPrograms / studentProgramIds.size()) * 30.0;
+                                : ((double) matchingPrograms / maxPrograms) * 30.0;
 
                 double availabilityScore = professor.isAvailableToSupervise() ? 20.0 : 0.0;
-
                 double totalScore = researchLineScore + doctoralProgramScore + availabilityScore;
+
+                List<String> sharedResearchLines = professor.getResearchLines().stream()
+                                .filter(line -> studentResearchLineIds.contains(line.getId()))
+                                .map(ResearchLine::getName)
+                                .toList();
+
+                List<String> sharedDoctoralPrograms = professor.getDoctoralPrograms().stream()
+                                .filter(program -> studentProgramIds.contains(program.getId()))
+                                .map(DoctoralProgram::getName)
+                                .toList();
 
                 return MatchResultResponse.builder()
                                 .userId(professor.getUser().getId())
@@ -109,9 +120,17 @@ public class MatchingService {
                                                 professor.getDoctoralPrograms().stream()
                                                                 .map(DoctoralProgram::getName)
                                                                 .toList())
-                                .matchExplanation(buildProfessorExplanation(
-                                                matchingResearchLines,
-                                                matchingPrograms,
+                                .matchExplanation(buildDetailedExplanation(
+                                                totalScore,
+                                                researchLineScore,
+                                                doctoralProgramScore,
+                                                availabilityScore,
+                                                (int) matchingResearchLines,
+                                                maxResearchLines,
+                                                (int) matchingPrograms,
+                                                maxPrograms,
+                                                sharedResearchLines,
+                                                sharedDoctoralPrograms,
                                                 professor.isAvailableToSupervise()))
                                 .build();
         }
@@ -141,17 +160,28 @@ public class MatchingService {
                                 .filter(professorProgramIds::contains)
                                 .count();
 
-                double researchLineScore = professorResearchLineIds.isEmpty()
+                int maxResearchLines = Math.max(studentResearchLineIds.size(), professorResearchLineIds.size());
+                double researchLineScore = maxResearchLines == 0
                                 ? 0
-                                : ((double) matchingResearchLines / professorResearchLineIds.size()) * 50.0;
+                                : ((double) matchingResearchLines / maxResearchLines) * 50.0;
 
-                double doctoralProgramScore = professorProgramIds.isEmpty()
+                int maxPrograms = Math.max(studentProgramIds.size(), professorProgramIds.size());
+                double doctoralProgramScore = maxPrograms == 0
                                 ? 0
-                                : ((double) matchingPrograms / professorProgramIds.size()) * 30.0;
+                                : ((double) matchingPrograms / maxPrograms) * 30.0;
 
                 double availabilityScore = professor.isAvailableToSupervise() ? 20.0 : 0.0;
-
                 double totalScore = researchLineScore + doctoralProgramScore + availabilityScore;
+
+                List<String> sharedResearchLines = student.getResearchLines().stream()
+                                .filter(line -> professorResearchLineIds.contains(line.getId()))
+                                .map(ResearchLine::getName)
+                                .toList();
+
+                List<String> sharedDoctoralPrograms = student.getDoctoralPrograms().stream()
+                                .filter(program -> professorProgramIds.contains(program.getId()))
+                                .map(DoctoralProgram::getName)
+                                .toList();
 
                 return MatchResultResponse.builder()
                                 .userId(student.getUser().getId())
@@ -172,64 +202,89 @@ public class MatchingService {
                                                 student.getDoctoralPrograms().stream()
                                                                 .map(DoctoralProgram::getName)
                                                                 .toList())
-                                .matchExplanation(buildStudentExplanation(
-                                                matchingResearchLines,
-                                                matchingPrograms,
+                                .matchExplanation(buildDetailedExplanation(
+                                                totalScore,
+                                                researchLineScore,
+                                                doctoralProgramScore,
+                                                availabilityScore,
+                                                (int) matchingResearchLines,
+                                                maxResearchLines,
+                                                (int) matchingPrograms,
+                                                maxPrograms,
+                                                sharedResearchLines,
+                                                sharedDoctoralPrograms,
                                                 professor.isAvailableToSupervise()))
                                 .build();
         }
 
-        private String buildProfessorExplanation(long matchingResearchLines, long matchingPrograms, boolean available) {
-                StringBuilder explanation = new StringBuilder("Match based on ");
-
-                explanation.append(matchingResearchLines)
-                                .append(" shared research line");
-                if (matchingResearchLines != 1) {
-                        explanation.append("s");
-                }
-
-                explanation.append(" and ")
-                                .append(matchingPrograms)
-                                .append(" shared doctoral program");
-                if (matchingPrograms != 1) {
-                        explanation.append("s");
-                }
-
-                explanation.append(". ");
-
-                if (available) {
-                        explanation.append("Professor is currently available to supervise.");
-                } else {
-                        explanation.append("Professor is currently marked as not available to supervise.");
-                }
-
-                return explanation.toString();
-        }
-
-        private String buildStudentExplanation(long matchingResearchLines, long matchingPrograms,
+        private String buildDetailedExplanation(
+                        double totalScore,
+                        double researchLineScore,
+                        double doctoralProgramScore,
+                        double availabilityScore,
+                        int matchingResearchLines,
+                        int maxResearchLines,
+                        int matchingPrograms,
+                        int maxPrograms,
+                        List<String> sharedResearchLines,
+                        List<String> sharedDoctoralPrograms,
                         boolean availableProfessor) {
-                StringBuilder explanation = new StringBuilder("Match based on ");
+                StringBuilder explanation = new StringBuilder();
 
-                explanation.append(matchingResearchLines)
-                                .append(" shared research line");
-                if (matchingResearchLines != 1) {
-                        explanation.append("s");
-                }
+                explanation.append("Afinidad total: ")
+                                .append((int) Math.round(totalScore))
+                                .append("%.\n\n");
 
-                explanation.append(" and ")
-                                .append(matchingPrograms)
-                                .append(" shared doctoral program");
-                if (matchingPrograms != 1) {
-                        explanation.append("s");
-                }
+                explanation.append("Cálculo basado en tres criterios:\n");
+                explanation.append("• Líneas de investigación (50%)\n");
+                explanation.append("• Programas de doctorado (30%)\n");
+                explanation.append("• Disponibilidad del profesor (20%)\n\n");
 
-                explanation.append(". ");
+                explanation.append("Líneas de investigación: ")
+                                .append(matchingResearchLines)
+                                .append("/")
+                                .append(maxResearchLines)
+                                .append(" coincidencias -> ")
+                                .append((int) Math.round(researchLineScore))
+                                .append(" puntos.\n");
 
-                if (availableProfessor) {
-                        explanation.append("Professor is currently available to supervise.");
+                if (!sharedResearchLines.isEmpty()) {
+                        explanation.append("Coincidencias en líneas: ")
+                                        .append(String.join(", ", sharedResearchLines))
+                                        .append(".\n");
                 } else {
-                        explanation.append("Professor is currently marked as not available to supervise.");
+                        explanation.append("No se han encontrado coincidencias en líneas de investigación.\n");
                 }
+
+                explanation.append("\nProgramas de doctorado: ")
+                                .append(matchingPrograms)
+                                .append("/")
+                                .append(maxPrograms)
+                                .append(" coincidencias -> ")
+                                .append((int) Math.round(doctoralProgramScore))
+                                .append(" puntos.\n");
+
+                if (!sharedDoctoralPrograms.isEmpty()) {
+                        explanation.append("Coincidencias en programas: ")
+                                        .append(String.join(", ", sharedDoctoralPrograms))
+                                        .append(".\n");
+                } else {
+                        explanation.append("No se han encontrado coincidencias en programas de doctorado.\n");
+                }
+
+                explanation.append("\nDisponibilidad del profesor: ");
+                if (availableProfessor) {
+                        explanation.append("+")
+                                        .append((int) Math.round(availabilityScore))
+                                        .append(" puntos (el profesor está disponible para dirigir tesis).");
+                } else {
+                        explanation.append(
+                                        "0 puntos (el profesor no figura actualmente como disponible para dirigir tesis).");
+                }
+
+                explanation.append("\n\nTotal final: ")
+                                .append((int) Math.round(totalScore))
+                                .append("%.");
 
                 return explanation.toString();
         }

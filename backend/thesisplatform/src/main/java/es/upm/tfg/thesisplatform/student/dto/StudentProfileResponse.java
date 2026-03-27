@@ -13,6 +13,7 @@ import java.util.List;
 public class StudentProfileResponse {
 
     private Long id;
+    private Long userId;
     private String email;
     private String firstName;
     private String lastName;

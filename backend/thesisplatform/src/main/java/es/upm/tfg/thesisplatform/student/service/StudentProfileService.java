@@ -113,6 +113,7 @@ public class StudentProfileService {
         private StudentProfileResponse mapToResponse(StudentProfile profile) {
                 return StudentProfileResponse.builder()
                                 .id(profile.getId())
+                                .userId(profile.getUser().getId())
                                 .email(profile.getUser().getEmail())
                                 .firstName(profile.getFirstName())
                                 .lastName(profile.getLastName())

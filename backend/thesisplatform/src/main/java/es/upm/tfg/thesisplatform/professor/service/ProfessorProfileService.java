@@ -107,6 +107,7 @@ public class ProfessorProfileService {
         private ProfessorProfileResponse mapToResponse(ProfessorProfile profile) {
                 return ProfessorProfileResponse.builder()
                                 .id(profile.getId())
+                                .userId(profile.getUser().getId())
                                 .email(profile.getUser().getEmail())
                                 .firstName(profile.getFirstName())
                                 .lastName(profile.getLastName())

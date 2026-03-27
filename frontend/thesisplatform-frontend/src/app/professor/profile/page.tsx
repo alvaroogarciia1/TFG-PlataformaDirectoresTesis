@@ -11,29 +11,6 @@ export default function ProfessorProfilePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    async function handleDownloadCv(url: string) {
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error("No se ha podido descargar el CV.");
-            }
-
-            const blob = await response.blob();
-            const blobUrl = window.URL.createObjectURL(blob);
-
-            const link = document.createElement("a");
-            link.href = blobUrl;
-            link.download = "cv_profesor.pdf";
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-
-            window.URL.revokeObjectURL(blobUrl);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "No se ha podido descargar el CV.");
-        }
-    }
-
     useEffect(() => {
         async function loadProfile() {
             if (!isAuthenticated()) {
@@ -132,14 +109,6 @@ export default function ProfessorProfilePage() {
                                     >
                                         Ver CV
                                     </a>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => handleDownloadCv(profile.cvUrl)}
-                                        className="text-green-600 underline"
-                                    >
-                                        Descargar CV
-                                    </button>
                                 </div>
                             ) : (
                                 "No disponible"

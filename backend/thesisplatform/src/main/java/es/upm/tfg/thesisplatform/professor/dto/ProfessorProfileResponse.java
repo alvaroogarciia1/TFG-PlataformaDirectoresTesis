@@ -12,6 +12,7 @@ import java.util.List;
 public class ProfessorProfileResponse {
 
     private Long id;
+    private Long userId;
     private String email;
     private String firstName;
     private String lastName;
