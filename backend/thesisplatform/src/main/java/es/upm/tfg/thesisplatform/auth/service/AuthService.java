@@ -15,14 +15,49 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service responsible for account registration and authentication.
+ *
+ * <p>
+ * This service encapsulates the business rules related to self-registration,
+ * credential validation and JWT token generation for authenticated users.
+ * </p>
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
+    /**
+     * Repository used to access and persist user accounts.
+     */
     private final UserRepository userRepository;
+
+    /**
+     * Component used to hash plain-text passwords before persistence and to
+     * verify submitted passwords during authentication.
+     */
     private final PasswordEncoder passwordEncoder;
+
+    /**
+     * Service used to generate JWT tokens after successful authentication.
+     */
     private final JwtService jwtService;
 
+    /**
+     * Registers a new account in the platform.
+     *
+     * <p>
+     * The email is normalized before validation and persistence. Self-registration
+     * is restricted to student and professor roles.
+     * </p>
+     *
+     * @param request registration data submitted by the client
+     * @return response DTO containing the created account data
+     * @throws EmailAlreadyExistsException if another account already uses the same
+     *                                     email
+     * @throws ForbiddenOperationException if the requested role is not allowed for
+     *                                     self-registration
+     */
     public RegisterResponse register(RegisterRequest request) {
         String normalizedEmail = request.getEmail().trim().toLowerCase();
 
@@ -52,6 +87,20 @@ public class AuthService {
                 .build();
     }
 
+    /**
+     * Authenticates a user with email and password credentials.
+     *
+     * <p>
+     * If the credentials are valid and the account is active, a JWT token is
+     * generated and returned together with the account information.
+     * </p>
+     *
+     * @param request login credentials submitted by the client
+     * @return authentication response containing the JWT token
+     * @throws InvalidCredentialsException if the email does not exist or the
+     *                                     password is incorrect
+     * @throws ForbiddenOperationException if the account exists but is deactivated
+     */
     public AuthResponse login(LoginRequest request) {
         String normalizedEmail = request.getEmail().trim().toLowerCase();
 

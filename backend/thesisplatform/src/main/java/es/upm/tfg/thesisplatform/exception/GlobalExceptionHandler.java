@@ -11,9 +11,25 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Global REST exception handler for the application.
+ *
+ * <p>
+ * This component centralizes the translation of domain and validation
+ * exceptions into standardized HTTP error responses using
+ * {@link ProblemDetail},
+ * improving consistency across the API.
+ * </p>
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Handles duplicated email registration attempts.
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 409 status
+     */
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ProblemDetail handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -23,6 +39,12 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    /**
+     * Handles malformed request bodies or invalid enum values.
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 400 status
+     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ProblemDetail handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         String detail = "Request body is invalid. Check JSON format and field values.";
@@ -38,6 +60,12 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    /**
+     * Handles authentication failures caused by incorrect credentials.
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 401 status
+     */
     @ExceptionHandler(InvalidCredentialsException.class)
     public ProblemDetail handleInvalidCredentials(InvalidCredentialsException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -47,6 +75,12 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    /**
+     * Handles cases where a student profile cannot be found.
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 404 status
+     */
     @ExceptionHandler(StudentProfileNotFoundException.class)
     public ProblemDetail handleStudentProfileNotFound(StudentProfileNotFoundException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -56,6 +90,12 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    /**
+     * Handles operations that are not permitted by the application rules.
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 403 status
+     */
     @ExceptionHandler(ForbiddenOperationException.class)
     public ProblemDetail handleForbiddenOperation(ForbiddenOperationException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -65,6 +105,12 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    /**
+     * Handles generic not-found situations for resources in the system.
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 404 status
+     */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ProblemDetail handleResourceNotFound(ResourceNotFoundException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -74,6 +120,12 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    /**
+     * Handles cases where a professor profile cannot be found.
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 404 status
+     */
     @ExceptionHandler(ProfessorProfileNotFoundException.class)
     public ProblemDetail handleProfessorProfileNotFound(ProfessorProfileNotFoundException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -83,6 +135,12 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    /**
+     * Handles cases where a thesis request cannot be found.
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 404 status
+     */
     @ExceptionHandler(ThesisRequestNotFoundException.class)
     public ProblemDetail handleThesisRequestNotFound(ThesisRequestNotFoundException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -92,6 +150,12 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    /**
+     * Handles invalid operations over thesis requests.
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 400 status
+     */
     @ExceptionHandler(InvalidThesisRequestOperationException.class)
     public ProblemDetail handleInvalidThesisRequestOperation(InvalidThesisRequestOperationException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -101,6 +165,12 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    /**
+     * Handles invalid, expired or already used password reset tokens.
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 400 status
+     */
     @ExceptionHandler(InvalidTokenException.class)
     public ProblemDetail handleInvalidToken(InvalidTokenException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -110,6 +180,12 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    /**
+     * Handles cases where a supervised thesis cannot be found.
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 404 status
+     */
     @ExceptionHandler(SupervisedThesisNotFoundException.class)
     public ProblemDetail handleSupervisedThesisNotFound(SupervisedThesisNotFoundException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -119,6 +195,12 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    /**
+     * Handles invalid file upload or file validation errors.
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 400 status
+     */
     @ExceptionHandler(InvalidFileException.class)
     public ProblemDetail handleInvalidFile(InvalidFileException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -128,6 +210,17 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    /**
+     * Handles bean validation errors produced by invalid request DTO fields.
+     *
+     * <p>
+     * The response includes an additional {@code errors} property containing
+     * the field-by-field validation messages.
+     * </p>
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 400 status and field errors
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationException(MethodArgumentNotValidException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);

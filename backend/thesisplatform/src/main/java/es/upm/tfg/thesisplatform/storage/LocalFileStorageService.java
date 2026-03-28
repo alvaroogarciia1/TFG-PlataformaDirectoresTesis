@@ -10,15 +10,41 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.UUID;
 
+/**
+ * Local filesystem implementation of {@link FileStorageService}.
+ *
+ * <p>
+ * This service stores uploaded files in a directory within the server
+ * and returns a public URL for later access.
+ * </p>
+ *
+ * <p>
+ * It also performs validation on file type and size.
+ * </p>
+ */
 @Service
 public class LocalFileStorageService implements FileStorageService {
 
+    /**
+     * Base directory where files are stored on disk.
+     */
     @Value("${app.upload.dir}")
     private String uploadDir;
 
+    /**
+     * Base URL used to expose stored files publicly.
+     */
     @Value("${app.base-url}")
     private String baseUrl;
 
+    /**
+     * Saves a file in the local filesystem after validating it.
+     *
+     * @param file         uploaded file
+     * @param subdirectory logical subfolder
+     * @return public URL of the stored file
+     * @throws InvalidFileException if validation fails
+     */
     @Override
     public String saveFile(MultipartFile file, String subdirectory) {
         try {
@@ -35,6 +61,7 @@ public class LocalFileStorageService implements FileStorageService {
                 throw new InvalidFileException("File size must not exceed 5 MB");
             }
 
+            // Generate unique safe filename
             String safeFilename = UUID.randomUUID() + "_" + originalFilename.replaceAll("\\s+", "_");
 
             Path uploadPath = Paths.get(uploadDir, subdirectory);

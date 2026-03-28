@@ -8,13 +8,35 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+/**
+ * Component responsible for inserting a default administrator account when the
+ * application starts and such account does not already exist.
+ *
+ * <p>
+ * This initializer guarantees that the platform always has at least one
+ * administrative user capable of managing the system from the admin panel.
+ * </p>
+ */
 @Component
 @RequiredArgsConstructor
 public class AdminDataInitializer implements CommandLineRunner {
 
+    /**
+     * Repository used to query and persist user accounts.
+     */
     private final UserRepository userRepository;
+
+    /**
+     * Encoder used to securely hash the default administrator password.
+     */
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Executes the initialization logic once the Spring Boot application has
+     * started.
+     *
+     * @param args application startup arguments
+     */
     @Override
     public void run(String... args) {
         String adminEmail = "admin@thesisplatform.com";

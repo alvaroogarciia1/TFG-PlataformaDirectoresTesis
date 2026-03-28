@@ -18,13 +18,46 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Service responsible for computing automatic affinity matches between
+ * students and professors.
+ *
+ * <p>
+ * The matching algorithm compares structured academic information from both
+ * profiles and generates a quantitative score based on three criteria:
+ * </p>
+ * <ul>
+ * <li>Research line coincidence (50%)</li>
+ * <li>Doctoral program coincidence (30%)</li>
+ * <li>Professor availability (20%)</li>
+ * </ul>
+ *
+ * <p>
+ * The service returns only results with a positive total score and sorts them
+ * in descending order by affinity.
+ * </p>
+ */
 @Service
 @RequiredArgsConstructor
 public class MatchingService {
 
+        /**
+         * Repository used to access student profiles.
+         */
         private final StudentProfileRepository studentProfileRepository;
+
+        /**
+         * Repository used to access professor profiles.
+         */
         private final ProfessorProfileRepository professorProfileRepository;
 
+        /**
+         * Computes the list of professors that best match the given student.
+         *
+         * @param studentEmail email of the authenticated student
+         * @return ordered list of matching professor results with positive affinity
+         * @throws StudentProfileNotFoundException if the student profile does not exist
+         */
         @Transactional(readOnly = true)
         public List<MatchResultResponse> matchProfessorsForStudent(String studentEmail) {
                 StudentProfile student = studentProfileRepository.findByUserEmail(studentEmail)
@@ -39,6 +72,14 @@ public class MatchingService {
                                 .toList();
         }
 
+        /**
+         * Computes the list of students that best match the given professor.
+         *
+         * @param professorEmail email of the authenticated professor
+         * @return ordered list of matching student results with positive affinity
+         * @throws ProfessorProfileNotFoundException if the professor profile does not
+         *                                           exist
+         */
         @Transactional(readOnly = true)
         public List<MatchResultResponse> matchStudentsForProfessor(String professorEmail) {
                 ProfessorProfile professor = professorProfileRepository.findByUserEmail(professorEmail)
@@ -53,6 +94,14 @@ public class MatchingService {
                                 .toList();
         }
 
+        /**
+         * Builds the matching result from the perspective of a student searching
+         * for potential professors.
+         *
+         * @param student   student profile used as the source of the comparison
+         * @param professor professor profile evaluated as a potential match
+         * @return detailed match result for the professor
+         */
         private MatchResultResponse mapProfessorMatch(StudentProfile student, ProfessorProfile professor) {
                 Set<Long> studentResearchLineIds = student.getResearchLines().stream()
                                 .map(ResearchLine::getId)
@@ -135,6 +184,14 @@ public class MatchingService {
                                 .build();
         }
 
+        /**
+         * Builds the matching result from the perspective of a professor searching
+         * for potential students.
+         *
+         * @param professor professor profile used as the source of the comparison
+         * @param student   student profile evaluated as a potential match
+         * @return detailed match result for the student
+         */
         private MatchResultResponse mapStudentMatch(ProfessorProfile professor, StudentProfile student) {
                 Set<Long> professorResearchLineIds = professor.getResearchLines().stream()
                                 .map(ResearchLine::getId)
@@ -217,6 +274,25 @@ public class MatchingService {
                                 .build();
         }
 
+        /**
+         * Builds a human-readable explanation of the matching result, including
+         * the contribution of each scoring criterion and the shared academic elements.
+         *
+         * @param totalScore             final affinity score
+         * @param researchLineScore      score contributed by research lines
+         * @param doctoralProgramScore   score contributed by doctoral programs
+         * @param availabilityScore      score contributed by professor availability
+         * @param matchingResearchLines  number of shared research lines
+         * @param maxResearchLines       maximum number of research lines considered in
+         *                               the comparison
+         * @param matchingPrograms       number of shared doctoral programs
+         * @param maxPrograms            maximum number of doctoral programs considered
+         *                               in the comparison
+         * @param sharedResearchLines    names of shared research lines
+         * @param sharedDoctoralPrograms names of shared doctoral programs
+         * @param availableProfessor     whether the professor is available to supervise
+         * @return detailed textual explanation of the match result
+         */
         private String buildDetailedExplanation(
                         double totalScore,
                         double researchLineScore,
@@ -289,6 +365,12 @@ public class MatchingService {
                 return explanation.toString();
         }
 
+        /**
+         * Rounds a numeric value to two decimal places.
+         *
+         * @param value value to round
+         * @return rounded value
+         */
         private double round(double value) {
                 return Math.round(value * 100.0) / 100.0;
         }

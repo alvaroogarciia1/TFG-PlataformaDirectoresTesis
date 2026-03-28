@@ -13,13 +13,41 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * Filter that intercepts incoming HTTP requests to extract and validate JWT
+ * tokens.
+ *
+ * <p>
+ * If a valid bearer token is found in the {@code Authorization} header, the
+ * corresponding user is loaded and the Spring Security context is populated
+ * with
+ * an authenticated principal.
+ * </p>
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    /**
+     * Service responsible for extracting and validating JWT information.
+     */
     private final JwtService jwtService;
+
+    /**
+     * Service used to load user details associated with the token subject.
+     */
     private final CustomUserDetailsService userDetailsService;
 
+    /**
+     * Processes the incoming request, attempts JWT-based authentication and
+     * continues the filter chain.
+     *
+     * @param request     current HTTP request
+     * @param response    current HTTP response
+     * @param filterChain filter chain to continue processing
+     * @throws ServletException if a servlet-related error occurs
+     * @throws IOException      if an input/output error occurs
+     */
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -51,8 +79,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception ex) {
-            // Token inválido, expirado o usuario inexistente.
-            // Continuamos la request sin autenticar.
+            // Invalid token, expired token or missing user.
+            // The request continues without authentication.
         }
 
         filterChain.doFilter(request, response);

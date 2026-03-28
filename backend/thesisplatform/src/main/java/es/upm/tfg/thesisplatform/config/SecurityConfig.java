@@ -11,13 +11,40 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Main security configuration of the application.
+ *
+ * <p>
+ * This class configures Spring Security to work with a stateless JWT-based
+ * authentication model, defines which endpoints are publicly accessible and
+ * registers the custom JWT authentication filter in the security chain.
+ * </p>
+ */
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    /**
+     * Custom filter responsible for extracting and validating JWT tokens from
+     * requests.
+     */
     private final JwtAuthenticationFilter jwtAuthFilter;
 
+    /**
+     * Builds the main Spring Security filter chain.
+     *
+     * <p>
+     * The configuration disables CSRF protection for the stateless API,
+     * enables CORS handling, allows unauthenticated access to authentication,
+     * catalog and file endpoints, and requires authentication for all other
+     * requests.
+     * </p>
+     *
+     * @param http {@link HttpSecurity} object used to configure web security
+     * @return configured security filter chain
+     * @throws Exception if the security chain cannot be built
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http

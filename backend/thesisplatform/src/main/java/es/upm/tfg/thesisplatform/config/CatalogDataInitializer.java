@@ -8,17 +8,38 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * Component responsible for preloading a default catalog of doctoral programs
+ * when the application starts.
+ *
+ * <p>
+ * The initialization is only performed when the doctoral program table is
+ * empty, preventing duplicated seed data across multiple executions.
+ * </p>
+ */
 @Component
 @RequiredArgsConstructor
 public class CatalogDataInitializer implements CommandLineRunner {
 
+        /**
+         * Repository used to access and persist doctoral program entities.
+         */
         private final DoctoralProgramRepository doctoralProgramRepository;
 
+        /**
+         * Executes the catalog initialization logic at application startup.
+         *
+         * @param args application startup arguments
+         */
         @Override
         public void run(String... args) {
                 initializeDoctoralPrograms();
         }
 
+        /**
+         * Inserts a predefined list of doctoral programs into the catalog when
+         * no records are currently stored.
+         */
         private void initializeDoctoralPrograms() {
                 if (doctoralProgramRepository.count() > 0) {
                         return;

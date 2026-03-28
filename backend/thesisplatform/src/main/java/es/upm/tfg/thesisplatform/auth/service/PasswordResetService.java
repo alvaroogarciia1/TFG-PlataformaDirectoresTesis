@@ -15,15 +15,50 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Service responsible for the password recovery workflow.
+ *
+ * <p>
+ * It handles the generation of reset tokens, token persistence, email sending
+ * and password update after validating the submitted token.
+ * </p>
+ */
 @Service
 @RequiredArgsConstructor
 public class PasswordResetService {
 
+    /**
+     * Repository used to retrieve user accounts by email.
+     */
     private final UserRepository userRepository;
+
+    /**
+     * Repository used to persist and retrieve password reset tokens.
+     */
     private final PasswordResetTokenRepository tokenRepository;
+
+    /**
+     * Component used to encode the new password before persisting it.
+     */
     private final PasswordEncoder passwordEncoder;
+
+    /**
+     * Service responsible for sending password reset emails.
+     */
     private final EmailService emailService;
 
+    /**
+     * Starts the password recovery process for the provided email address.
+     *
+     * <p>
+     * If the email is associated with an account, any previous reset token is
+     * removed, a new token is generated and persisted, and the reset email is sent.
+     * If the email does not exist, the method returns silently to avoid disclosing
+     * whether an account is registered.
+     * </p>
+     *
+     * @param request request containing the email address of the account
+     */
     public void forgotPassword(ForgotPasswordRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
@@ -48,6 +83,18 @@ public class PasswordResetService {
         emailService.sendPasswordResetEmail(user.getEmail(), token);
     }
 
+    /**
+     * Resets the password associated with a valid reset token.
+     *
+     * <p>
+     * The token must exist, must not be already used and must not be expired.
+     * Once the password is updated, the token is marked as used.
+     * </p>
+     *
+     * @param request request containing the token and the new password
+     * @throws InvalidTokenException if the token is invalid, already used or
+     *                               expired
+     */
     public void resetPassword(ResetPasswordRequest request) {
 
         PasswordResetToken resetToken = tokenRepository.findByToken(request.getToken())
