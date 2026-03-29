@@ -29,7 +29,16 @@ import java.util.stream.Collectors;
  * <ul>
  * <li>Research line coincidence (50%)</li>
  * <li>Doctoral program coincidence (30%)</li>
- * <li>Professor availability (20%)</li>
+ * <li>Operational fit (20%)</li>
+ * </ul>
+ *
+ * <p>
+ * The operational fit criterion is calculated using three subfactors:
+ * </p>
+ * <ul>
+ * <li>Professor availability: 10 points</li>
+ * <li>Student full-time dedication: 5 points</li>
+ * <li>Student funding availability: 5 points</li>
  * </ul>
  *
  * <p>
@@ -98,11 +107,17 @@ public class MatchingService {
          * Builds the matching result from the perspective of a student searching
          * for potential professors.
          *
+         * <p>
+         * The final score combines academic coincidence and operational fit,
+         * and includes a textual explanation of the result.
+         * </p>
+         *
          * @param student   student profile used as the source of the comparison
          * @param professor professor profile evaluated as a potential match
          * @return detailed match result for the professor
          */
         private MatchResultResponse mapProfessorMatch(StudentProfile student, ProfessorProfile professor) {
+
                 Set<Long> studentResearchLineIds = student.getResearchLines().stream()
                                 .map(ResearchLine::getId)
                                 .collect(Collectors.toSet());
@@ -127,18 +142,34 @@ public class MatchingService {
                                 .filter(studentProgramIds::contains)
                                 .count();
 
+                // Research lines contribute up to 50 points.
                 int maxResearchLines = Math.max(studentResearchLineIds.size(), professorResearchLineIds.size());
                 double researchLineScore = maxResearchLines == 0
                                 ? 0
                                 : ((double) matchingResearchLines / maxResearchLines) * 50.0;
 
+                // Doctoral programs contribute up to 30 points.
                 int maxPrograms = Math.max(studentProgramIds.size(), professorProgramIds.size());
                 double doctoralProgramScore = maxPrograms == 0
                                 ? 0
                                 : ((double) matchingPrograms / maxPrograms) * 30.0;
 
-                double availabilityScore = professor.isAvailableToSupervise() ? 20.0 : 0.0;
-                double totalScore = researchLineScore + doctoralProgramScore + availabilityScore;
+                // Operational fit contributes up to 20 points.
+                double operationalScore = 0.0;
+
+                boolean professorAvailable = professor.isAvailableToSupervise();
+                boolean studentFullTime = student.getDedicationType() != null &&
+                                student.getDedicationType().name().equals("FULL_TIME");
+                boolean studentHasFunding = student.isHasFunding();
+
+                if (professorAvailable)
+                        operationalScore += 10.0;
+                if (studentFullTime)
+                        operationalScore += 5.0;
+                if (studentHasFunding)
+                        operationalScore += 5.0;
+
+                double totalScore = researchLineScore + doctoralProgramScore + operationalScore;
 
                 List<String> sharedResearchLines = professor.getResearchLines().stream()
                                 .filter(line -> studentResearchLineIds.contains(line.getId()))
@@ -158,7 +189,7 @@ public class MatchingService {
                                 .totalScore(round(totalScore))
                                 .researchLineScore(round(researchLineScore))
                                 .doctoralProgramScore(round(doctoralProgramScore))
-                                .availabilityScore(round(availabilityScore))
+                                .availabilityScore(round(operationalScore))
                                 .matchingResearchLines((int) matchingResearchLines)
                                 .matchingDoctoralPrograms((int) matchingPrograms)
                                 .researchLines(
@@ -173,14 +204,16 @@ public class MatchingService {
                                                 totalScore,
                                                 researchLineScore,
                                                 doctoralProgramScore,
-                                                availabilityScore,
+                                                operationalScore,
                                                 (int) matchingResearchLines,
                                                 maxResearchLines,
                                                 (int) matchingPrograms,
                                                 maxPrograms,
                                                 sharedResearchLines,
                                                 sharedDoctoralPrograms,
-                                                professor.isAvailableToSupervise()))
+                                                professorAvailable,
+                                                studentFullTime,
+                                                studentHasFunding))
                                 .build();
         }
 
@@ -188,11 +221,17 @@ public class MatchingService {
          * Builds the matching result from the perspective of a professor searching
          * for potential students.
          *
+         * <p>
+         * The final score combines academic coincidence and operational fit,
+         * and includes a textual explanation of the result.
+         * </p>
+         *
          * @param professor professor profile used as the source of the comparison
          * @param student   student profile evaluated as a potential match
          * @return detailed match result for the student
          */
         private MatchResultResponse mapStudentMatch(ProfessorProfile professor, StudentProfile student) {
+
                 Set<Long> professorResearchLineIds = professor.getResearchLines().stream()
                                 .map(ResearchLine::getId)
                                 .collect(Collectors.toSet());
@@ -217,18 +256,34 @@ public class MatchingService {
                                 .filter(professorProgramIds::contains)
                                 .count();
 
+                // Research lines contribute up to 50 points.
                 int maxResearchLines = Math.max(studentResearchLineIds.size(), professorResearchLineIds.size());
                 double researchLineScore = maxResearchLines == 0
                                 ? 0
                                 : ((double) matchingResearchLines / maxResearchLines) * 50.0;
 
+                // Doctoral programs contribute up to 30 points.
                 int maxPrograms = Math.max(studentProgramIds.size(), professorProgramIds.size());
                 double doctoralProgramScore = maxPrograms == 0
                                 ? 0
                                 : ((double) matchingPrograms / maxPrograms) * 30.0;
 
-                double availabilityScore = professor.isAvailableToSupervise() ? 20.0 : 0.0;
-                double totalScore = researchLineScore + doctoralProgramScore + availabilityScore;
+                // Operational fit contributes up to 20 points.
+                double operationalScore = 0.0;
+
+                boolean professorAvailable = professor.isAvailableToSupervise();
+                boolean studentFullTime = student.getDedicationType() != null &&
+                                student.getDedicationType().name().equals("FULL_TIME");
+                boolean studentHasFunding = student.isHasFunding();
+
+                if (professorAvailable)
+                        operationalScore += 10.0;
+                if (studentFullTime)
+                        operationalScore += 5.0;
+                if (studentHasFunding)
+                        operationalScore += 5.0;
+
+                double totalScore = researchLineScore + doctoralProgramScore + operationalScore;
 
                 List<String> sharedResearchLines = student.getResearchLines().stream()
                                 .filter(line -> professorResearchLineIds.contains(line.getId()))
@@ -248,7 +303,7 @@ public class MatchingService {
                                 .totalScore(round(totalScore))
                                 .researchLineScore(round(researchLineScore))
                                 .doctoralProgramScore(round(doctoralProgramScore))
-                                .availabilityScore(round(availabilityScore))
+                                .availabilityScore(round(operationalScore))
                                 .matchingResearchLines((int) matchingResearchLines)
                                 .matchingDoctoralPrograms((int) matchingPrograms)
                                 .researchLines(
@@ -263,14 +318,16 @@ public class MatchingService {
                                                 totalScore,
                                                 researchLineScore,
                                                 doctoralProgramScore,
-                                                availabilityScore,
+                                                operationalScore,
                                                 (int) matchingResearchLines,
                                                 maxResearchLines,
                                                 (int) matchingPrograms,
                                                 maxPrograms,
                                                 sharedResearchLines,
                                                 sharedDoctoralPrograms,
-                                                professor.isAvailableToSupervise()))
+                                                professorAvailable,
+                                                studentFullTime,
+                                                studentHasFunding))
                                 .build();
         }
 
@@ -281,7 +338,7 @@ public class MatchingService {
          * @param totalScore             final affinity score
          * @param researchLineScore      score contributed by research lines
          * @param doctoralProgramScore   score contributed by doctoral programs
-         * @param availabilityScore      score contributed by professor availability
+         * @param operationalScore       score contributed by operational fit
          * @param matchingResearchLines  number of shared research lines
          * @param maxResearchLines       maximum number of research lines considered in
          *                               the comparison
@@ -290,21 +347,26 @@ public class MatchingService {
          *                               in the comparison
          * @param sharedResearchLines    names of shared research lines
          * @param sharedDoctoralPrograms names of shared doctoral programs
-         * @param availableProfessor     whether the professor is available to supervise
+         * @param professorAvailable     whether the professor is available to supervise
+         * @param studentFullTime        whether the student has full-time dedication
+         * @param studentHasFunding      whether the student has funding
          * @return detailed textual explanation of the match result
          */
         private String buildDetailedExplanation(
                         double totalScore,
                         double researchLineScore,
                         double doctoralProgramScore,
-                        double availabilityScore,
+                        double operationalScore,
                         int matchingResearchLines,
                         int maxResearchLines,
                         int matchingPrograms,
                         int maxPrograms,
                         List<String> sharedResearchLines,
                         List<String> sharedDoctoralPrograms,
-                        boolean availableProfessor) {
+                        boolean professorAvailable,
+                        boolean studentFullTime,
+                        boolean studentHasFunding) {
+
                 StringBuilder explanation = new StringBuilder();
 
                 explanation.append("Afinidad total: ")
@@ -314,7 +376,7 @@ public class MatchingService {
                 explanation.append("Cálculo basado en tres criterios:\n");
                 explanation.append("• Líneas de investigación (50%)\n");
                 explanation.append("• Programas de doctorado (30%)\n");
-                explanation.append("• Disponibilidad del profesor (20%)\n\n");
+                explanation.append("• Encaje operativo (20%)\n\n");
 
                 explanation.append("Líneas de investigación: ")
                                 .append(matchingResearchLines)
@@ -348,17 +410,23 @@ public class MatchingService {
                         explanation.append("No se han encontrado coincidencias en programas de doctorado.\n");
                 }
 
-                explanation.append("\nDisponibilidad del profesor: ");
-                if (availableProfessor) {
-                        explanation.append("+")
-                                        .append((int) Math.round(availabilityScore))
-                                        .append(" puntos (el profesor está disponible para dirigir tesis).");
-                } else {
-                        explanation.append(
-                                        "0 puntos (el profesor no figura actualmente como disponible para dirigir tesis).");
-                }
+                explanation.append("\nEncaje operativo: ")
+                                .append((int) Math.round(operationalScore))
+                                .append(" puntos.\n");
 
-                explanation.append("\n\nTotal final: ")
+                explanation.append(professorAvailable
+                                ? "+10 puntos porque el profesor está disponible para dirigir tesis.\n"
+                                : "0 puntos en disponibilidad del profesor.\n");
+
+                explanation.append(studentFullTime
+                                ? "+5 puntos porque el estudiante tiene dedicación a tiempo completo.\n"
+                                : "0 puntos en dedicación del estudiante.\n");
+
+                explanation.append(studentHasFunding
+                                ? "+5 puntos porque el estudiante dispone de financiación.\n"
+                                : "0 puntos en financiación del estudiante.\n");
+
+                explanation.append("\nTotal final: ")
                                 .append((int) Math.round(totalScore))
                                 .append("%.");
 

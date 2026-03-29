@@ -78,7 +78,7 @@ public class ThesisRequestService {
      *                                                or if a pending request
      *                                                already exists
      */
-    public ThesisRequestResponse create(String studentEmail, CreateThesisRequestRequest request) {
+    public ThesisRequestResponse createFromStudent(String studentEmail, CreateThesisRequestRequest request) {
         User studentUser = userRepository.findByEmail(studentEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Student user not found"));
 
@@ -115,12 +115,11 @@ public class ThesisRequestService {
         ThesisRequest saved = thesisRequestRepository.save(thesisRequest);
 
         String subject = "Nueva solicitud de dirección de tesis";
-        String body = "Hola,\n\n" +
-                "Has recibido una nueva solicitud de dirección de tesis a través de la plataforma.\n\n" +
+        String body = "Has recibido una nueva solicitud de dirección de tesis a través de ThesisMatch.\n\n" +
                 "Estudiante: " + studentUser.getEmail() + "\n" +
                 "Asunto: " + saved.getSubject() + "\n\n" +
                 "Mensaje:\n" + saved.getMessage() + "\n\n" +
-                "Puedes revisar la solicitud en la plataforma.";
+                "Puedes revisar esta solicitud en la plataforma.";
 
         emailService.sendGenericEmail(professorUser.getEmail(), subject, body);
 
@@ -180,12 +179,11 @@ public class ThesisRequestService {
         ThesisRequest saved = thesisRequestRepository.save(thesisRequest);
 
         String subject = "Nueva propuesta de dirección de tesis";
-        String body = "Hola,\n\n" +
-                "Has recibido una nueva propuesta de dirección de tesis a través de la plataforma.\n\n" +
+        String body = "Has recibido una nueva propuesta de dirección de tesis a través de ThesisMatch.\n\n" +
                 "Profesor: " + professorUser.getEmail() + "\n" +
                 "Asunto: " + saved.getSubject() + "\n\n" +
                 "Mensaje:\n" + saved.getMessage() + "\n\n" +
-                "Puedes revisar la solicitud en la plataforma.";
+                "Puedes revisar esta solicitud en la plataforma.";
 
         emailService.sendGenericEmail(studentUser.getEmail(), subject, body);
 
@@ -304,8 +302,7 @@ public class ThesisRequestService {
                 : thesisRequest.getProfessor().getEmail();
 
         String subject = "Solicitud de tesis aceptada";
-        String body = "Hola,\n\n" +
-                "Tu solicitud de tesis con asunto \"" + saved.getSubject() + "\" ha sido aceptada.\n\n" +
+        String body = "La solicitud de tesis con asunto \"" + saved.getSubject() + "\" ha sido aceptada.\n\n" +
                 "Puedes revisar el estado actualizado en la plataforma.";
 
         emailService.sendGenericEmail(recipientEmail, subject, body);
@@ -351,8 +348,7 @@ public class ThesisRequestService {
                 : thesisRequest.getProfessor().getEmail();
 
         String subject = "Solicitud de tesis rechazada";
-        String body = "Hola,\n\n" +
-                "Tu solicitud de tesis con asunto \"" + saved.getSubject() + "\" ha sido rechazada.\n\n" +
+        String body = "La solicitud de tesis con asunto \"" + saved.getSubject() + "\" ha sido rechazada.\n\n" +
                 "Puedes revisar el estado actualizado en la plataforma.";
 
         emailService.sendGenericEmail(recipientEmail, subject, body);
@@ -397,9 +393,8 @@ public class ThesisRequestService {
                 : thesisRequest.getStudent().getEmail();
 
         String subject = "Solicitud de tesis cancelada";
-        String body = "Hola,\n\n" +
-                "La solicitud de tesis con asunto \"" + saved.getSubject()
-                + "\" ha sido cancelada por la persona que la creó.\n\n" +
+        String body = "La solicitud de tesis con asunto \"" + saved.getSubject()
+                + "\" ha sido cancelada por la persona que la envió.\n\n" +
                 "Puedes revisar el estado actualizado en la plataforma.";
 
         emailService.sendGenericEmail(recipientEmail, subject, body);

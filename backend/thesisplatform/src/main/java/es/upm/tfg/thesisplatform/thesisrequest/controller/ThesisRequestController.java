@@ -15,12 +15,13 @@ import java.util.List;
 /**
  * REST controller responsible for managing thesis direction requests.
  *
- * <p>This controller exposes endpoints for:
+ * <p>
+ * This controller exposes endpoints for:
  * <ul>
- *     <li>Creating requests from students to professors</li>
- *     <li>Creating requests from professors to students</li>
- *     <li>Retrieving sent and received requests</li>
- *     <li>Accepting, rejecting and cancelling requests</li>
+ * <li>Creating requests from students to professors</li>
+ * <li>Creating requests from professors to students</li>
+ * <li>Retrieving sent and received requests</li>
+ * <li>Accepting, rejecting and cancelling requests</li>
  * </ul>
  */
 @RestController
@@ -34,10 +35,12 @@ public class ThesisRequestController {
     private final ThesisRequestService thesisRequestService;
 
     /**
-     * Creates a new thesis request initiated by a student and addressed to a professor.
+     * Creates a new thesis request initiated by a student and addressed to a
+     * professor.
      *
      * @param authentication authentication object containing the current user
-     * @param request request DTO with the target professor and request content
+     * @param request        request DTO with the target professor and request
+     *                       content
      * @return created thesis request response
      */
     @PreAuthorize("hasRole('STUDENT')")
@@ -45,14 +48,15 @@ public class ThesisRequestController {
     public ThesisRequestResponse create(
             Authentication authentication,
             @Valid @RequestBody CreateThesisRequestRequest request) {
-        return thesisRequestService.create(authentication.getName(), request);
+        return thesisRequestService.createFromStudent(authentication.getName(), request);
     }
 
     /**
-     * Creates a new thesis request initiated by a professor and addressed to a student.
+     * Creates a new thesis request initiated by a professor and addressed to a
+     * student.
      *
      * @param authentication authentication object containing the current user
-     * @param request request DTO with the target student and request content
+     * @param request        request DTO with the target student and request content
      * @return created thesis request response
      */
     @PreAuthorize("hasRole('PROFESSOR')")
@@ -91,7 +95,7 @@ public class ThesisRequestController {
      * Accepts a received thesis request.
      *
      * @param authentication authentication object containing the current user
-     * @param id identifier of the request to accept
+     * @param id             identifier of the request to accept
      * @return updated thesis request response
      */
     @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
@@ -106,7 +110,7 @@ public class ThesisRequestController {
      * Rejects a received thesis request.
      *
      * @param authentication authentication object containing the current user
-     * @param id identifier of the request to reject
+     * @param id             identifier of the request to reject
      * @return updated thesis request response
      */
     @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
@@ -121,7 +125,7 @@ public class ThesisRequestController {
      * Cancels a sent thesis request.
      *
      * @param authentication authentication object containing the current user
-     * @param id identifier of the request to cancel
+     * @param id             identifier of the request to cancel
      * @return updated thesis request response
      */
     @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
