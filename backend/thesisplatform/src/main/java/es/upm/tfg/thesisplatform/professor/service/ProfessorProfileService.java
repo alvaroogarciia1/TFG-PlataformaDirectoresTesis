@@ -32,16 +32,53 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Service responsible for professor profile management.
+ *
+ * <p>This service encapsulates the business logic related to:
+ * <ul>
+ *     <li>Retrieval and update of professor profiles</li>
+ *     <li>Manual search over professor profiles</li>
+ *     <li>CV upload and retrieval</li>
+ *     <li>Initial profile creation with CV</li>
+ * </ul>
+ */
 @Service
 @RequiredArgsConstructor
 public class ProfessorProfileService {
 
+        /**
+         * Repository used to access professor profiles.
+         */
         private final ProfessorProfileRepository professorProfileRepository;
+
+        /**
+         * Repository used to access users.
+         */
         private final UserRepository userRepository;
+
+        /**
+         * Repository used to access doctoral programs.
+         */
         private final DoctoralProgramRepository doctoralProgramRepository;
+
+        /**
+         * Repository used to access research lines.
+         */
         private final ResearchLineRepository researchLineRepository;
+
+        /**
+         * Service used to store uploaded files such as CVs.
+         */
         private final FileStorageService fileStorageService;
 
+        /**
+         * Retrieves the fully detailed profile of the authenticated professor.
+         *
+         * @param email email of the authenticated professor
+         * @return professor profile response
+         * @throws ProfessorProfileNotFoundException if the profile does not exist
+         */
         @Transactional(readOnly = true)
         public ProfessorProfileResponse getMyProfile(String email) {
                 ProfessorProfile profile = professorProfileRepository.findDetailedByUserEmail(email)
@@ -50,6 +87,16 @@ public class ProfessorProfileService {
                 return mapToResponse(profile);
         }
 
+        /**
+         * Creates or updates the professor profile associated with the given email.
+         *
+         * @param email authenticated professor email
+         * @param request request DTO with profile data
+         * @return saved professor profile response
+         * @throws ProfessorProfileNotFoundException if the user does not exist
+         * @throws ForbiddenOperationException if the user does not have professor role
+         * @throws ResourceNotFoundException if one or more doctoral program ids do not exist
+         */
         public ProfessorProfileResponse upsertMyProfile(String email, ProfessorProfileRequest request) {
                 User user = userRepository.findByEmail(email)
                                 .orElseThrow(() -> new ProfessorProfileNotFoundException(email));
@@ -104,6 +151,12 @@ public class ProfessorProfileService {
                 return mapToResponse(savedProfile);
         }
 
+        /**
+         * Maps a professor profile entity to its response DTO.
+         *
+         * @param profile professor profile entity
+         * @return mapped professor profile response
+         */
         private ProfessorProfileResponse mapToResponse(ProfessorProfile profile) {
                 return ProfessorProfileResponse.builder()
                                 .id(profile.getId())
@@ -128,6 +181,12 @@ public class ProfessorProfileService {
                                 .build();
         }
 
+        /**
+         * Searches professor profiles using structured optional filters.
+         *
+         * @param request search request containing filter values
+         * @return list of professor profiles matching the filters
+         */
         @Transactional(readOnly = true)
         public List<ProfessorProfileResponse> search(ProfessorSearchRequest request) {
                 List<Long> programIds = normalizeList(request.getDoctoralProgramIds());
@@ -144,10 +203,22 @@ public class ProfessorProfileService {
                                 .toList();
         }
 
+        /**
+         * Normalizes a list-based filter by converting null or empty lists to null.
+         *
+         * @param values raw list of filter values
+         * @return normalized list or null
+         */
         private List<Long> normalizeList(List<Long> values) {
                 return (values == null || values.isEmpty()) ? null : values;
         }
 
+        /**
+         * Normalizes a text filter by trimming it and converting blank values to null.
+         *
+         * @param value raw text value
+         * @return normalized text or null
+         */
         private String normalizeText(String value) {
                 if (value == null || value.trim().isEmpty()) {
                         return null;
@@ -155,6 +226,14 @@ public class ProfessorProfileService {
                 return value.trim();
         }
 
+        /**
+         * Uploads or replaces the CV of the authenticated professor.
+         *
+         * @param email authenticated professor email
+         * @param file uploaded CV file
+         * @return updated professor profile response
+         * @throws ResourceNotFoundException if the profile does not exist
+         */
         public ProfessorProfileResponse uploadCv(String email, MultipartFile file) {
 
                 ProfessorProfile profile = professorProfileRepository.findByUserEmail(email)
@@ -169,6 +248,12 @@ public class ProfessorProfileService {
                 return mapToResponse(saved);
         }
 
+        /**
+         * Searches professor profiles by name.
+         *
+         * @param name optional name fragment
+         * @return list of professor profiles whose full name matches the query
+         */
         @Transactional(readOnly = true)
         public List<ProfessorProfileResponse> searchByName(String name) {
                 return professorProfileRepository.searchByName(name)
@@ -177,6 +262,13 @@ public class ProfessorProfileService {
                                 .toList();
         }
 
+        /**
+         * Loads the CV file resource of the authenticated professor.
+         *
+         * @param email authenticated professor email
+         * @return CV file as a resource
+         * @throws ProfessorProfileNotFoundException if the profile does not exist
+         */
         public Resource getMyCvFile(String email) {
                 ProfessorProfile profile = professorProfileRepository.findDetailedByUserEmail(email)
                                 .orElseThrow(() -> new ProfessorProfileNotFoundException(email));
@@ -189,6 +281,17 @@ public class ProfessorProfileService {
                 }
         }
 
+        /**
+         * Creates the initial professor profile together with the uploaded CV.
+         *
+         * @param email authenticated professor email
+         * @param request request DTO with profile data
+         * @param file uploaded CV file
+         * @return created professor profile response
+         * @throws ResourceNotFoundException if the user does not exist
+         * @throws ForbiddenOperationException if the profile already exists
+         * @throws InvalidFileException if no CV file is provided
+         */
         @Transactional
         public ProfessorProfileResponse createProfileWithCv(
                         String email,

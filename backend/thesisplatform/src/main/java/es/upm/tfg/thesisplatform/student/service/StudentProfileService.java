@@ -31,16 +31,53 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Service responsible for student profile management.
+ *
+ * <p>This service encapsulates the business logic related to:
+ * <ul>
+ *     <li>Retrieval and update of student profiles</li>
+ *     <li>Manual search over student profiles</li>
+ *     <li>CV upload and retrieval</li>
+ *     <li>Initial profile creation with CV</li>
+ * </ul>
+ */
 @Service
 @RequiredArgsConstructor
 public class StudentProfileService {
 
+        /**
+         * Repository used to access student profiles.
+         */
         private final StudentProfileRepository studentProfileRepository;
+
+        /**
+         * Repository used to access users.
+         */
         private final UserRepository userRepository;
+
+        /**
+         * Repository used to access doctoral programs.
+         */
         private final DoctoralProgramRepository doctoralProgramRepository;
+
+        /**
+         * Repository used to access research lines.
+         */
         private final ResearchLineRepository researchLineRepository;
+
+        /**
+         * Service used to store uploaded files such as CVs.
+         */
         private final FileStorageService fileStorageService;
 
+        /**
+         * Retrieves the fully detailed profile of the authenticated student.
+         *
+         * @param email email of the authenticated student
+         * @return student profile response
+         * @throws StudentProfileNotFoundException if the profile does not exist
+         */
         @Transactional(readOnly = true)
         public StudentProfileResponse getMyProfile(String email) {
                 StudentProfile profile = studentProfileRepository.findDetailedByUserEmail(email)
@@ -49,6 +86,16 @@ public class StudentProfileService {
                 return mapToResponse(profile);
         }
 
+        /**
+         * Creates or updates the student profile associated with the given email.
+         *
+         * @param email authenticated student email
+         * @param request request DTO with profile data
+         * @return saved student profile response
+         * @throws StudentProfileNotFoundException if the user does not exist
+         * @throws ForbiddenOperationException if the user does not have student role
+         * @throws ResourceNotFoundException if one or more doctoral program ids do not exist
+         */
         public StudentProfileResponse upsertMyProfile(String email, StudentProfileRequest request) {
                 User user = userRepository.findByEmail(email)
                                 .orElseThrow(() -> new StudentProfileNotFoundException(email));
@@ -110,6 +157,12 @@ public class StudentProfileService {
                 return mapToResponse(savedProfile);
         }
 
+        /**
+         * Maps a student profile entity to its response DTO.
+         *
+         * @param profile student profile entity
+         * @return mapped student profile response
+         */
         private StudentProfileResponse mapToResponse(StudentProfile profile) {
                 return StudentProfileResponse.builder()
                                 .id(profile.getId())
@@ -138,6 +191,12 @@ public class StudentProfileService {
                                 .build();
         }
 
+        /**
+         * Searches student profiles using structured optional filters.
+         *
+         * @param request search request containing filter values
+         * @return list of student profiles matching the filters
+         */
         @Transactional(readOnly = true)
         public List<StudentProfileResponse> search(StudentSearchRequest request) {
                 List<Long> programIds = normalizeList(request.getDoctoralProgramIds());
@@ -156,10 +215,22 @@ public class StudentProfileService {
                                 .toList();
         }
 
+        /**
+         * Normalizes a list-based filter by converting null or empty lists to null.
+         *
+         * @param values raw list of filter values
+         * @return normalized list or null
+         */
         private List<Long> normalizeList(List<Long> values) {
                 return (values == null || values.isEmpty()) ? null : values;
         }
 
+        /**
+         * Normalizes a text filter by trimming it and converting blank values to null.
+         *
+         * @param value raw text value
+         * @return normalized text or null
+         */
         private String normalizeText(String value) {
                 if (value == null || value.trim().isEmpty()) {
                         return null;
@@ -167,6 +238,14 @@ public class StudentProfileService {
                 return value.trim();
         }
 
+        /**
+         * Uploads or replaces the CV of the authenticated student.
+         *
+         * @param email authenticated student email
+         * @param file uploaded CV file
+         * @return updated student profile response
+         * @throws ResourceNotFoundException if the profile does not exist
+         */
         public StudentProfileResponse uploadCv(String email, MultipartFile file) {
 
                 StudentProfile profile = studentProfileRepository.findByUserEmail(email)
@@ -181,6 +260,12 @@ public class StudentProfileService {
                 return mapToResponse(saved);
         }
 
+        /**
+         * Searches student profiles by proposed thesis title.
+         *
+         * @param title optional thesis title fragment
+         * @return list of student profiles whose thesis title matches the query
+         */
         @Transactional(readOnly = true)
         public List<StudentProfileResponse> searchByThesisTitle(String title) {
                 return studentProfileRepository.searchByThesisTitle(title)
@@ -189,6 +274,13 @@ public class StudentProfileService {
                                 .toList();
         }
 
+        /**
+         * Loads the CV file resource of the authenticated student.
+         *
+         * @param email authenticated student email
+         * @return CV file as a resource
+         * @throws StudentProfileNotFoundException if the profile does not exist
+         */
         public Resource getMyCvFile(String email) {
                 StudentProfile profile = studentProfileRepository.findDetailedByUserEmail(email)
                                 .orElseThrow(() -> new StudentProfileNotFoundException(email));
@@ -201,6 +293,17 @@ public class StudentProfileService {
                 }
         }
 
+        /**
+         * Creates the initial student profile together with the uploaded CV.
+         *
+         * @param email authenticated student email
+         * @param request request DTO with profile data
+         * @param file uploaded CV file
+         * @return created student profile response
+         * @throws ResourceNotFoundException if the user does not exist
+         * @throws ForbiddenOperationException if the profile already exists
+         * @throws InvalidFileException if no CV file is provided
+         */
         @Transactional
         public StudentProfileResponse createProfileWithCv(
                         String email,

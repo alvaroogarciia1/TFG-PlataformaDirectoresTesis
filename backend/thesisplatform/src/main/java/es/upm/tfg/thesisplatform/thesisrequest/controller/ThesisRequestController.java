@@ -12,14 +12,34 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST controller responsible for managing thesis direction requests.
+ *
+ * <p>This controller exposes endpoints for:
+ * <ul>
+ *     <li>Creating requests from students to professors</li>
+ *     <li>Creating requests from professors to students</li>
+ *     <li>Retrieving sent and received requests</li>
+ *     <li>Accepting, rejecting and cancelling requests</li>
+ * </ul>
+ */
 @RestController
 @RequestMapping("/api/requests")
 @RequiredArgsConstructor
 public class ThesisRequestController {
 
+    /**
+     * Service layer responsible for thesis request business logic.
+     */
     private final ThesisRequestService thesisRequestService;
 
-    // Estudiante -> Profesor
+    /**
+     * Creates a new thesis request initiated by a student and addressed to a professor.
+     *
+     * @param authentication authentication object containing the current user
+     * @param request request DTO with the target professor and request content
+     * @return created thesis request response
+     */
     @PreAuthorize("hasRole('STUDENT')")
     @PostMapping
     public ThesisRequestResponse create(
@@ -28,7 +48,13 @@ public class ThesisRequestController {
         return thesisRequestService.create(authentication.getName(), request);
     }
 
-    // Profesor -> Estudiante
+    /**
+     * Creates a new thesis request initiated by a professor and addressed to a student.
+     *
+     * @param authentication authentication object containing the current user
+     * @param request request DTO with the target student and request content
+     * @return created thesis request response
+     */
     @PreAuthorize("hasRole('PROFESSOR')")
     @PostMapping("/professor")
     public ThesisRequestResponse createFromProfessor(
@@ -37,21 +63,37 @@ public class ThesisRequestController {
         return thesisRequestService.createFromProfessor(authentication.getName(), request);
     }
 
-    // Enviadas por el usuario autenticado
+    /**
+     * Retrieves the requests sent by the authenticated user.
+     *
+     * @param authentication authentication object containing the current user
+     * @return list of sent thesis requests
+     */
     @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
     @GetMapping("/sent")
     public List<ThesisRequestResponse> getSentRequests(Authentication authentication) {
         return thesisRequestService.getSentRequests(authentication.getName());
     }
 
-    // Recibidas por el usuario autenticado
+    /**
+     * Retrieves the requests received by the authenticated user.
+     *
+     * @param authentication authentication object containing the current user
+     * @return list of received thesis requests
+     */
     @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
     @GetMapping("/received")
     public List<ThesisRequestResponse> getReceivedRequests(Authentication authentication) {
         return thesisRequestService.getReceivedRequests(authentication.getName());
     }
 
-    // Aceptar la solicitud recibida
+    /**
+     * Accepts a received thesis request.
+     *
+     * @param authentication authentication object containing the current user
+     * @param id identifier of the request to accept
+     * @return updated thesis request response
+     */
     @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
     @PatchMapping("/{id}/accept")
     public ThesisRequestResponse acceptRequest(
@@ -60,7 +102,13 @@ public class ThesisRequestController {
         return thesisRequestService.acceptRequest(authentication.getName(), id);
     }
 
-    // Rechazar la solicitud recibida
+    /**
+     * Rejects a received thesis request.
+     *
+     * @param authentication authentication object containing the current user
+     * @param id identifier of the request to reject
+     * @return updated thesis request response
+     */
     @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
     @PatchMapping("/{id}/reject")
     public ThesisRequestResponse rejectRequest(
@@ -69,7 +117,13 @@ public class ThesisRequestController {
         return thesisRequestService.rejectRequest(authentication.getName(), id);
     }
 
-    // Cancelar la solicitud enviada
+    /**
+     * Cancels a sent thesis request.
+     *
+     * @param authentication authentication object containing the current user
+     * @param id identifier of the request to cancel
+     * @return updated thesis request response
+     */
     @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
     @PatchMapping("/{id}/cancel")
     public ThesisRequestResponse cancelRequest(

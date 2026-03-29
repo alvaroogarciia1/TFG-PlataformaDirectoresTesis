@@ -11,16 +11,55 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository for accessing and querying professor profiles.
+ *
+ * <p>It includes convenience methods for lookups by user identity and
+ * custom queries for manual search operations.</p>
+ */
 public interface ProfessorProfileRepository extends JpaRepository<ProfessorProfile, Long> {
 
+  /**
+   * Finds a professor profile by the email of the associated user.
+   *
+   * @param email user email
+   * @return optional containing the professor profile when it exists
+   */
   Optional<ProfessorProfile> findByUserEmail(String email);
 
+  /**
+   * Finds a professor profile by the identifier of the associated user.
+   *
+   * @param userId user identifier
+   * @return optional containing the professor profile when it exists
+   */
   Optional<ProfessorProfile> findByUserId(Long userId);
 
+  /**
+   * Finds a professor profile by the associated user entity.
+   *
+   * @param user associated user
+   * @return optional containing the professor profile when it exists
+   */
   Optional<ProfessorProfile> findByUser(User user);
 
+  /**
+   * Checks whether a professor profile exists for the given user email.
+   *
+   * @param email user email
+   * @return {@code true} if a profile exists; {@code false} otherwise
+   */
   boolean existsByUserEmail(String email);
 
+  /**
+   * Searches professor profiles using structured optional filters.
+   *
+   * @param programIds doctoral program identifiers
+   * @param lineIds research line identifiers
+   * @param available availability filter
+   * @param institution institution text filter
+   * @return list of professor profiles matching the search criteria
+   */
   @Query("""
           SELECT DISTINCT p FROM ProfessorProfile p
           LEFT JOIN p.doctoralPrograms dp
@@ -36,6 +75,12 @@ public interface ProfessorProfileRepository extends JpaRepository<ProfessorProfi
       @Param("available") Boolean available,
       @Param("institution") String institution);
 
+  /**
+   * Searches professor profiles by full name using partial matching.
+   *
+   * @param name name fragment
+   * @return list of matching professor profiles
+   */
   @Query("""
           SELECT DISTINCT p FROM ProfessorProfile p
           WHERE (:name IS NULL OR :name = ''
@@ -43,9 +88,23 @@ public interface ProfessorProfileRepository extends JpaRepository<ProfessorProfi
       """)
   List<ProfessorProfile> searchByName(@Param("name") String name);
 
+  /**
+   * Retrieves a professor profile with related user, doctoral programs
+   * and research lines eagerly loaded.
+   *
+   * @param userId user identifier
+   * @return optional containing the fully loaded profile
+   */
   @EntityGraph(attributePaths = { "user", "doctoralPrograms", "researchLines" })
   Optional<ProfessorProfile> findDetailedByUserId(Long userId);
 
+  /**
+   * Retrieves a professor profile by user email with related user, doctoral programs
+   * and research lines eagerly loaded.
+   *
+   * @param email user email
+   * @return optional containing the fully loaded profile
+   */
   @EntityGraph(attributePaths = { "user", "doctoralPrograms", "researchLines" })
   Optional<ProfessorProfile> findDetailedByUserEmail(String email);
 }

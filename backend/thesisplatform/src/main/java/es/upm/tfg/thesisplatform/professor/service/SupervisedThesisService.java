@@ -14,13 +14,34 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Service responsible for supervised thesis management.
+ *
+ * <p>This service encapsulates the logic for creating, retrieving and deleting
+ * supervised thesis records linked to a professor profile.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class SupervisedThesisService {
 
+    /**
+     * Repository used to access supervised thesis records.
+     */
     private final SupervisedThesisRepository supervisedThesisRepository;
+
+    /**
+     * Repository used to access professor profiles.
+     */
     private final ProfessorProfileRepository professorProfileRepository;
 
+    /**
+     * Creates a new supervised thesis record for the given professor.
+     *
+     * @param professorEmail email of the authenticated professor
+     * @param request request DTO containing thesis data
+     * @return created supervised thesis response
+     * @throws ProfessorProfileNotFoundException if the professor profile does not exist
+     */
     public SupervisedThesisResponse create(String professorEmail, SupervisedThesisRequest request) {
         ProfessorProfile professorProfile = professorProfileRepository.findByUserEmail(professorEmail)
                 .orElseThrow(() -> new ProfessorProfileNotFoundException(professorEmail));
@@ -41,6 +62,12 @@ public class SupervisedThesisService {
         return mapToResponse(saved);
     }
 
+    /**
+     * Retrieves all supervised theses belonging to the authenticated professor.
+     *
+     * @param professorEmail email of the authenticated professor
+     * @return list of supervised thesis responses
+     */
     public List<SupervisedThesisResponse> getMyTheses(String professorEmail) {
         return supervisedThesisRepository.findByProfessorProfileUserEmailOrderByCreatedAtDesc(professorEmail)
                 .stream()
@@ -48,6 +75,14 @@ public class SupervisedThesisService {
                 .toList();
     }
 
+    /**
+     * Deletes a supervised thesis record if it belongs to the authenticated professor.
+     *
+     * @param professorEmail email of the authenticated professor
+     * @param thesisId identifier of the thesis to delete
+     * @throws SupervisedThesisNotFoundException if the thesis does not exist
+     * @throws ForbiddenOperationException if the thesis does not belong to the professor
+     */
     public void delete(String professorEmail, Long thesisId) {
         SupervisedThesis thesis = supervisedThesisRepository.findById(thesisId)
                 .orElseThrow(() -> new SupervisedThesisNotFoundException(thesisId));
@@ -59,6 +94,12 @@ public class SupervisedThesisService {
         supervisedThesisRepository.delete(thesis);
     }
 
+    /**
+     * Maps a supervised thesis entity to its response DTO.
+     *
+     * @param thesis supervised thesis entity
+     * @return mapped supervised thesis response
+     */
     private SupervisedThesisResponse mapToResponse(SupervisedThesis thesis) {
         return SupervisedThesisResponse.builder()
                 .id(thesis.getId())
