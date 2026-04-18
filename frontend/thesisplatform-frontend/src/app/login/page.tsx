@@ -21,8 +21,17 @@ export default function LoginPage() {
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
 
+    const isFormFilled =
+        email.trim() !== "" &&
+        password.trim() !== "";
+
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
+
+        if (!isFormFilled) {
+            return;
+        }
+
         setError("");
         setFieldErrors({});
         setLoading(true);
@@ -165,8 +174,8 @@ export default function LoginPage() {
 
                     <button
                         type="submit"
-                        disabled={loading}
-                        className="w-full rounded-xl border px-4 py-2 font-medium transition hover:bg-gray-50 disabled:opacity-60"
+                        disabled={loading || !isFormFilled}
+                        className="w-full rounded-xl border px-4 py-2 font-medium transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {loading ? "Entrando..." : "Entrar"}
                     </button>

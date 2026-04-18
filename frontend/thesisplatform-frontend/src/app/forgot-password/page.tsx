@@ -13,8 +13,15 @@ export default function ForgotPasswordPage() {
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
 
+    const isFormFilled = email.trim() !== "";
+
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
+
+        if (!isFormFilled) {
+            return;
+        }
+
         setError("");
         setFieldErrors({});
         setLoading(true);
@@ -41,7 +48,6 @@ export default function ForgotPasswordPage() {
                 false
             );
             router.push("/?success=reset-sent");
-
         } catch (err) {
             setError("No se ha podido enviar el correo. Inténtalo más tarde.");
         } finally {
@@ -88,8 +94,8 @@ export default function ForgotPasswordPage() {
 
                     <button
                         type="submit"
-                        disabled={loading}
-                        className="w-full rounded-xl border px-4 py-2 font-medium transition hover:bg-gray-50 disabled:opacity-60"
+                        disabled={loading || !isFormFilled}
+                        className="w-full rounded-xl border px-4 py-2 font-medium transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {loading ? "Enviando..." : "Enviar enlace"}
                     </button>

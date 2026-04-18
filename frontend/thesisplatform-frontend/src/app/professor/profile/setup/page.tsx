@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, KeyboardEvent, useEffect, useState } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getUser, isAuthenticated, getToken } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
@@ -95,7 +95,7 @@ export default function ProfessorProfileSetupPage() {
 
                     setSelectedDoctoralPrograms(selectedProgramIds);
                 } catch {
-                    // modo registro
+                    // si no existe perfil todavía, se queda en modo creación
                 }
             } catch (err) {
                 if (err instanceof Error) {
@@ -111,11 +111,41 @@ export default function ProfessorProfileSetupPage() {
         init();
     }, [router]);
 
-    function toggleId(id: number, values: number[], setter: (v: number[]) => void) {
-        if (values.includes(id)) {
-            setter(values.filter((item) => item !== id));
-        } else {
-            setter([...values, id]);
+    const isFormFilled = useMemo(() => {
+        const baseFieldsFilled =
+            firstName.trim() !== "" &&
+            lastName.trim() !== "" &&
+            institution.trim() !== "" &&
+            selectedDoctoralPrograms.length > 0 &&
+            researchKeywords.length > 0;
+
+        const supervisionFieldsFilled = availableToSupervise
+            ? maxPhdStudents.trim() !== ""
+            : true;
+
+        const cvFilled = isEditMode ? existingCvUrl !== "" || cvFile !== null : cvFile !== null;
+
+        return baseFieldsFilled && supervisionFieldsFilled && cvFilled;
+    }, [
+        firstName,
+        lastName,
+        institution,
+        selectedDoctoralPrograms,
+        researchKeywords,
+        availableToSupervise,
+        maxPhdStudents,
+        isEditMode,
+        existingCvUrl,
+        cvFile,
+    ]);
+
+    function toggleId(id: number) {
+        setSelectedDoctoralPrograms((prev) =>
+            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+        );
+
+        if (fieldErrors.doctoralProgramIds) {
+            setFieldErrors((prev) => ({ ...prev, doctoralProgramIds: "" }));
         }
     }
 
@@ -132,18 +162,19 @@ export default function ProfessorProfileSetupPage() {
         );
 
         if (!alreadyExists) {
-            setResearchKeywords([...researchKeywords, value]);
+            setResearchKeywords((prev) => [...prev, value]);
         }
 
         setResearchInput("");
+
         if (fieldErrors.researchLines) {
             setFieldErrors((prev) => ({ ...prev, researchLines: "" }));
         }
     }
 
     function removeKeyword(keywordToRemove: string) {
-        setResearchKeywords(
-            researchKeywords.filter((keyword) => keyword !== keywordToRemove)
+        setResearchKeywords((prev) =>
+            prev.filter((keyword) => keyword !== keywordToRemove)
         );
     }
 
@@ -240,7 +271,7 @@ export default function ProfessorProfileSetupPage() {
                         institution,
                         department: department || null,
                         availableToSupervise,
-                        maxPhdStudents: maxPhdStudents ? Number(maxPhdStudents) : null,
+                        maxPhdStudents: availableToSupervise ? Number(maxPhdStudents) : null,
                         additionalInformation: additionalInformation || null,
                         doctoralProgramIds: selectedDoctoralPrograms,
                         researchLines: researchKeywords,
@@ -287,7 +318,7 @@ export default function ProfessorProfileSetupPage() {
                 institution,
                 department: department || null,
                 availableToSupervise,
-                maxPhdStudents: maxPhdStudents ? Number(maxPhdStudents) : null,
+                maxPhdStudents: availableToSupervise ? Number(maxPhdStudents) : null,
                 additionalInformation: additionalInformation || null,
                 cvUrl: cvUrlToKeep,
                 doctoralProgramIds: selectedDoctoralPrograms,
@@ -303,6 +334,11 @@ export default function ProfessorProfileSetupPage() {
 
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
+
+        if (!isFormFilled) {
+            return;
+        }
+
         setError("");
         setFieldErrors({});
         setSaving(true);
@@ -312,16 +348,19 @@ export default function ProfessorProfileSetupPage() {
         if (!firstName.trim()) errors.firstName = "Introduce el nombre.";
         if (!lastName.trim()) errors.lastName = "Introduce los apellidos.";
         if (!institution.trim()) errors.institution = "Introduce la institución.";
-
         if (selectedDoctoralPrograms.length === 0) {
             errors.doctoralProgramIds = "Selecciona al menos un programa de doctorado.";
         }
-
         if (researchKeywords.length === 0) {
             errors.researchLines = "Añade al menos una línea de investigación.";
         }
-
+        if (availableToSupervise && !maxPhdStudents.trim()) {
+            errors.maxPhdStudents = "Introduce el número máximo de doctorandos.";
+        }
         if (!isEditMode && !cvFile) {
+            errors.cv = "Debes adjuntar un CV en PDF.";
+        }
+        if (isEditMode && !existingCvUrl && !cvFile) {
             errors.cv = "Debes adjuntar un CV en PDF.";
         }
 
@@ -382,7 +421,12 @@ export default function ProfessorProfileSetupPage() {
                         <input
                             className={`w-full rounded-xl border px-3 py-2 ${fieldErrors.firstName ? "border-red-500 bg-red-50" : ""}`}
                             value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
+                            onChange={(e) => {
+                                setFirstName(e.target.value);
+                                if (fieldErrors.firstName) {
+                                    setFieldErrors((prev) => ({ ...prev, firstName: "" }));
+                                }
+                            }}
                         />
                         {fieldErrors.firstName && (
                             <p className="mt-1 text-sm text-red-600">{fieldErrors.firstName}</p>
@@ -394,26 +438,36 @@ export default function ProfessorProfileSetupPage() {
                         <input
                             className={`w-full rounded-xl border px-3 py-2 ${fieldErrors.lastName ? "border-red-500 bg-red-50" : ""}`}
                             value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
+                            onChange={(e) => {
+                                setLastName(e.target.value);
+                                if (fieldErrors.lastName) {
+                                    setFieldErrors((prev) => ({ ...prev, lastName: "" }));
+                                }
+                            }}
                         />
                         {fieldErrors.lastName && (
                             <p className="mt-1 text-sm text-red-600">{fieldErrors.lastName}</p>
                         )}
                     </div>
 
-                    <div>
+                    <div className="md:col-span-2">
                         <label className="mb-1 block text-sm font-medium">Institución</label>
                         <input
                             className={`w-full rounded-xl border px-3 py-2 ${fieldErrors.institution ? "border-red-500 bg-red-50" : ""}`}
                             value={institution}
-                            onChange={(e) => setInstitution(e.target.value)}
+                            onChange={(e) => {
+                                setInstitution(e.target.value);
+                                if (fieldErrors.institution) {
+                                    setFieldErrors((prev) => ({ ...prev, institution: "" }));
+                                }
+                            }}
                         />
                         {fieldErrors.institution && (
                             <p className="mt-1 text-sm text-red-600">{fieldErrors.institution}</p>
                         )}
                     </div>
 
-                    <div>
+                    <div className="md:col-span-2">
                         <label className="mb-1 block text-sm font-medium">Departamento</label>
                         <input
                             className="w-full rounded-xl border px-3 py-2"
@@ -423,120 +477,142 @@ export default function ProfessorProfileSetupPage() {
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-sm font-medium">¿Disponible para dirigir?</label>
+                        <label className="mb-1 block text-sm font-medium">¿Disponible para dirigir tesis?</label>
                         <select
                             className="w-full rounded-xl border px-3 py-2"
                             value={availableToSupervise ? "yes" : "no"}
-                            onChange={(e) => setAvailableToSupervise(e.target.value === "yes")}
+                            onChange={(e) => {
+                                const value = e.target.value === "yes";
+                                setAvailableToSupervise(value);
+                                if (!value) {
+                                    setMaxPhdStudents("");
+                                    setFieldErrors((prev) => ({ ...prev, maxPhdStudents: "" }));
+                                }
+                            }}
                         >
                             <option value="yes">Sí</option>
                             <option value="no">No</option>
                         </select>
                     </div>
 
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">Máx. doctorandos</label>
-                        <input
-                            type="number"
-                            className="w-full rounded-xl border px-3 py-2"
-                            value={maxPhdStudents}
-                            onChange={(e) => setMaxPhdStudents(e.target.value)}
-                        />
+                    {availableToSupervise && (
+                        <div>
+                            <label className="mb-1 block text-sm font-medium">Nº máximo de doctorandos</label>
+                            <input
+                                type="number"
+                                min="1"
+                                className={`w-full rounded-xl border px-3 py-2 ${fieldErrors.maxPhdStudents ? "border-red-500 bg-red-50" : ""}`}
+                                value={maxPhdStudents}
+                                onChange={(e) => {
+                                    setMaxPhdStudents(e.target.value);
+                                    if (fieldErrors.maxPhdStudents) {
+                                        setFieldErrors((prev) => ({ ...prev, maxPhdStudents: "" }));
+                                    }
+                                }}
+                            />
+                            {fieldErrors.maxPhdStudents && (
+                                <p className="mt-1 text-sm text-red-600">{fieldErrors.maxPhdStudents}</p>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="md:col-span-2">
+                        <label className="mb-2 block text-sm font-medium">Programas de doctorado</label>
+
+                        <div className="space-y-2 rounded-xl border p-3">
+                            {doctoralPrograms.length === 0 ? (
+                                <p className="text-sm text-gray-500">Cargando programas...</p>
+                            ) : (
+                                doctoralPrograms.map((program) => (
+                                    <label key={program.id} className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedDoctoralPrograms.includes(program.id)}
+                                            onChange={() => toggleId(program.id)}
+                                        />
+                                        <span>{program.name}</span>
+                                    </label>
+                                ))
+                            )}
+                        </div>
+
+                        {fieldErrors.doctoralProgramIds && (
+                            <p className="mt-1 text-sm text-red-600">{fieldErrors.doctoralProgramIds}</p>
+                        )}
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label className="mb-1 block text-sm font-medium">
+                            Líneas de investigación
+                        </label>
+
+                        <div className="flex gap-2">
+                            <input
+                                className="flex-1 rounded-xl border px-3 py-2"
+                                value={researchInput}
+                                onChange={(e) => setResearchInput(e.target.value)}
+                                onKeyDown={handleKeywordKeyDown}
+                                placeholder="Escribe una línea y pulsa Enter"
+                            />
+                            <button
+                                type="button"
+                                onClick={addKeyword}
+                                className="rounded-xl border px-4 py-2"
+                            >
+                                Añadir
+                            </button>
+                        </div>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            {researchKeywords.map((keyword) => (
+                                <span
+                                    key={keyword}
+                                    className="flex items-center gap-2 rounded-full border px-3 py-1 text-sm"
+                                >
+                                    {keyword}
+                                    <button
+                                        type="button"
+                                        onClick={() => removeKeyword(keyword)}
+                                        className="text-gray-500 hover:text-red-600"
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            ))}
+                        </div>
+
+                        {fieldErrors.researchLines && (
+                            <p className="mt-2 text-sm text-red-600">{fieldErrors.researchLines}</p>
+                        )}
                     </div>
 
                     <div className="md:col-span-2">
                         <label className="mb-1 block text-sm font-medium">Información adicional</label>
                         <textarea
                             className="w-full rounded-xl border px-3 py-2"
-                            rows={4}
+                            rows={3}
                             value={additionalInformation}
                             onChange={(e) => setAdditionalInformation(e.target.value)}
                         />
                     </div>
 
                     <div className="md:col-span-2">
-                        <label className="mb-1 block text-sm font-medium">
-                            Currículum (PDF){isEditMode ? "" : " *"}
-                        </label>
+                        <label className="mb-1 block text-sm font-medium">Adjuntar CV (PDF)</label>
                         <input
                             type="file"
                             accept="application/pdf"
                             className={`w-full rounded-xl border px-3 py-2 ${fieldErrors.cv ? "border-red-500 bg-red-50" : ""}`}
-                            onChange={(e) => validateCv(e.target.files?.[0] || null)}
+                            onChange={(e) => validateCv(e.target.files?.[0] ?? null)}
                         />
-                        {isEditMode && existingCvUrl && (
-                            <p className="mt-2 text-sm text-gray-600">
-                                Ya tienes un CV subido. Si seleccionas otro archivo, se reemplazará.
+                        {existingCvUrl && !cvFile && (
+                            <p className="mt-1 text-sm text-gray-600">
+                                Ya hay un CV subido para este perfil.
                             </p>
                         )}
                         {fieldErrors.cv && (
                             <p className="mt-1 text-sm text-red-600">{fieldErrors.cv}</p>
                         )}
                     </div>
-                </div>
-
-                <div className={`rounded-xl p-3 ${fieldErrors.doctoralProgramIds ? "border border-red-500 bg-red-50" : ""}`}>
-                    <p className="mb-2 text-sm font-medium">Programas de doctorado</p>
-                    <div className="grid gap-2 md:grid-cols-2">
-                        {doctoralPrograms.map((program) => (
-                            <label key={program.id} className="flex items-center gap-2 rounded-xl border px-3 py-2">
-                                <input
-                                    type="checkbox"
-                                    checked={selectedDoctoralPrograms.includes(program.id)}
-                                    onChange={() =>
-                                        toggleId(program.id, selectedDoctoralPrograms, setSelectedDoctoralPrograms)
-                                    }
-                                />
-                                <span>{program.name}</span>
-                            </label>
-                        ))}
-                    </div>
-                    {fieldErrors.doctoralProgramIds && (
-                        <p className="mt-2 text-sm text-red-600">{fieldErrors.doctoralProgramIds}</p>
-                    )}
-                </div>
-
-                <div className={`rounded-xl p-3 ${fieldErrors.researchLines ? "border border-red-500 bg-red-50" : ""}`}>
-                    <p className="mb-2 text-sm font-medium">Líneas de investigación</p>
-
-                    <div className="mb-3 flex gap-2">
-                        <input
-                            className="flex-1 rounded-xl border px-3 py-2"
-                            value={researchInput}
-                            onChange={(e) => setResearchInput(e.target.value)}
-                            onKeyDown={handleKeywordKeyDown}
-                            placeholder="Ej: IA, Backend, Unity..."
-                        />
-                        <button
-                            type="button"
-                            onClick={addKeyword}
-                            className="rounded-xl border px-4 py-2 font-medium"
-                        >
-                            Añadir
-                        </button>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                        {researchKeywords.map((keyword) => (
-                            <span
-                                key={keyword}
-                                className="flex items-center gap-2 rounded-full border px-3 py-1 text-sm"
-                            >
-                                {keyword}
-                                <button
-                                    type="button"
-                                    onClick={() => removeKeyword(keyword)}
-                                    className="text-gray-500 hover:text-red-600"
-                                >
-                                    ×
-                                </button>
-                            </span>
-                        ))}
-                    </div>
-
-                    {fieldErrors.researchLines && (
-                        <p className="mt-2 text-sm text-red-600">{fieldErrors.researchLines}</p>
-                    )}
                 </div>
 
                 <div className="flex gap-3">
@@ -550,8 +626,8 @@ export default function ProfessorProfileSetupPage() {
 
                     <button
                         type="submit"
-                        disabled={saving}
-                        className="rounded-xl border px-5 py-3 font-medium"
+                        disabled={saving || !isFormFilled}
+                        className="rounded-xl border px-5 py-3 font-medium disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {saving ? "Guardando..." : isEditMode ? "Guardar cambios" : "Guardar perfil"}
                     </button>
