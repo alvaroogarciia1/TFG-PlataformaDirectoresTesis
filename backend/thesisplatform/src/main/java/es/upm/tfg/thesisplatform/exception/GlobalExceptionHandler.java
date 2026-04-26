@@ -235,4 +235,23 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("errors", errors);
         return problemDetail;
     }
+
+    /**
+     * Handles unexpected exceptions not covered by more specific handlers.
+     *
+     * <p>
+     * This method prevents internal implementation details from being exposed
+     * to the client when an unhandled error occurs.
+     * </p>
+     *
+     * @param ex unexpected exception
+     * @return generic internal server error response
+     */
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleGenericException(Exception ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        problemDetail.setTitle("Internal server error");
+        problemDetail.setDetail("Unexpected error occurred");
+        return problemDetail;
+    }
 }

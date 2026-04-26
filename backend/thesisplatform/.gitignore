@@ -1,5 +1,6 @@
 HELP.md
-set-env.ps1
+backend\thesisplatform\set-env.ps1
+backend\thesisplatform\uploads
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/

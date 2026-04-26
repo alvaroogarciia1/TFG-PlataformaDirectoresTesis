@@ -10,8 +10,10 @@ import lombok.Setter;
 /**
  * DTO used to create or update a student profile.
  *
- * <p>It contains the structured academic and personal information
- * required by the platform for search and matching operations.</p>
+ * <p>
+ * It contains the structured academic and personal information
+ * required by the platform for search and matching operations.
+ * </p>
  */
 @Getter
 @Setter
@@ -90,7 +92,6 @@ public class StudentProfileRequest {
     /**
      * Reference or URL to the CV file.
      */
-    @NotBlank(message = "CV reference cannot be blank")
     @Size(max = 500, message = "CV reference must be at most 500 characters")
     private String cvUrl;
 

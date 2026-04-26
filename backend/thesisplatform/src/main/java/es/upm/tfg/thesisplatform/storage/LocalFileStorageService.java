@@ -52,6 +52,11 @@ public class LocalFileStorageService implements FileStorageService {
                 throw new InvalidFileException("File is empty");
             }
 
+            String contentType = file.getContentType();
+            if (!"application/pdf".equals(contentType)) {
+                throw new InvalidFileException("Only PDF files are allowed");
+            }
+
             String originalFilename = file.getOriginalFilename();
             if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".pdf")) {
                 throw new InvalidFileException("Only PDF files are allowed");
@@ -73,7 +78,7 @@ public class LocalFileStorageService implements FileStorageService {
             Path filePath = uploadPath.resolve(safeFilename);
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            return baseUrl + "/files/" + subdirectory + "/" + safeFilename;
+           return subdirectory + "/" + safeFilename;
 
         } catch (IOException e) {
             throw new RuntimeException("Error saving file", e);

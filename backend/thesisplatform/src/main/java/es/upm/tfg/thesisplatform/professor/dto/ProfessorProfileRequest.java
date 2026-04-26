@@ -9,8 +9,10 @@ import java.util.List;
 /**
  * DTO used to create or update a professor profile.
  *
- * <p>It contains the structured academic and institutional information
- * required by the platform for search and matching operations.</p>
+ * <p>
+ * It contains the structured academic and institutional information
+ * required by the platform for search and matching operations.
+ * </p>
  */
 @Getter
 @Setter
@@ -64,7 +66,6 @@ public class ProfessorProfileRequest {
     /**
      * Reference or URL to the CV file.
      */
-    @NotBlank(message = "CV reference cannot be blank")
     @Size(max = 500, message = "CV reference must be at most 500 characters")
     private String cvUrl;
 

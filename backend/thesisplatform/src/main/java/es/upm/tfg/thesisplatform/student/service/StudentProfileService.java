@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -56,6 +57,12 @@ public class StudentProfileService {
          * Repository used to access users.
          */
         private final UserRepository userRepository;
+
+        /**
+         * The direction of the PDF uploaded.
+         */
+        @Value("${app.upload.dir}")
+        private String uploadDir;
 
         /**
          * Repository used to access doctoral programs.
@@ -289,7 +296,7 @@ public class StudentProfileService {
                                 .orElseThrow(() -> new StudentProfileNotFoundException(email));
 
                 try {
-                        Path path = Paths.get(profile.getCvUrl());
+                        Path path = Paths.get(uploadDir).resolve(profile.getCvUrl());
                         return new UrlResource(path.toUri());
                 } catch (Exception e) {
                         throw new RuntimeException("Error loading CV");
@@ -326,8 +333,22 @@ public class StudentProfileService {
 
                 String cvUrl = fileStorageService.saveFile(file, "students");
 
-                List<DoctoralProgram> doctoralPrograms = doctoralProgramRepository
-                                .findAllById(request.getDoctoralProgramIds());
+                List<Long> doctoralProgramIds = request.getDoctoralProgramIds();
+
+                Set<DoctoralProgram> doctoralPrograms = new HashSet<>(
+                                doctoralProgramRepository.findAllById(doctoralProgramIds));
+
+                Set<Long> foundDoctoralProgramIds = doctoralPrograms.stream()
+                                .map(DoctoralProgram::getId)
+                                .collect(java.util.stream.Collectors.toSet());
+
+                Set<Long> missingDoctoralProgramIds = new HashSet<>(doctoralProgramIds);
+                missingDoctoralProgramIds.removeAll(foundDoctoralProgramIds);
+
+                if (!missingDoctoralProgramIds.isEmpty()) {
+                        throw new ResourceNotFoundException(
+                                        "Doctoral programs not found: " + missingDoctoralProgramIds);
+                }
 
                 Set<ResearchLine> researchLines = request.getResearchLines().stream()
                                 .map(name -> {
@@ -352,7 +373,7 @@ public class StudentProfileService {
                                 .dedicationType(request.getDedicationType())
                                 .additionalInformation(request.getAdditionalInformation())
                                 .cvUrl(cvUrl)
-                                .doctoralPrograms(new HashSet<>(doctoralPrograms))
+                                .doctoralPrograms(doctoralPrograms)
                                 .researchLines(researchLines)
                                 .build();
 
