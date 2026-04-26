@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import { getUser, isAuthenticated, getToken } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { DoctoralProgram } from "@/types/catalog";
+import {
+    getMySupervisedTheses,
+    createSupervisedThesis,
+    deleteSupervisedThesis,
+} from "@/lib/theses";
+import type { SupervisedThesis } from "@/types/professor";
 
 type ProfessorProfileResponse = {
     id: number;
@@ -33,6 +39,19 @@ export default function ProfessorProfileSetupPage() {
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
     const [doctoralPrograms, setDoctoralPrograms] = useState<DoctoralProgram[]>([]);
+
+    const [theses, setTheses] = useState<SupervisedThesis[]>([]);
+
+    const [thesisForm, setThesisForm] = useState({
+        doctoralStudentName: "",
+        thesisTitle: "",
+        defenseYear: "",
+        researchDescription: "",
+        industrialMention: false,
+        internationalMention: false,
+        results: "",
+        ongoing: false,
+    });
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -94,6 +113,8 @@ export default function ProfessorProfileSetupPage() {
                         .map((program) => program.id);
 
                     setSelectedDoctoralPrograms(selectedProgramIds);
+                    const loadedTheses = await getMySupervisedTheses();
+                    setTheses(loadedTheses);
                 } catch {
                     // si no existe perfil todavía, se queda en modo creación
                 }
@@ -332,6 +353,50 @@ export default function ProfessorProfileSetupPage() {
         }
     }
 
+    function addThesisLocally() {
+        if (
+            !thesisForm.doctoralStudentName.trim() ||
+            !thesisForm.thesisTitle.trim() ||
+            !thesisForm.researchDescription.trim()
+        ) {
+            setError("Completa doctorando, título y descripción de la tesis.");
+            return;
+        }
+
+        const temporaryThesis: SupervisedThesis = {
+            id: Date.now(),
+            doctoralStudentName: thesisForm.doctoralStudentName,
+            thesisTitle: thesisForm.thesisTitle,
+            defenseYear: thesisForm.defenseYear ? Number(thesisForm.defenseYear) : null,
+            researchDescription: thesisForm.researchDescription,
+            industrialMention: thesisForm.industrialMention,
+            internationalMention: thesisForm.internationalMention,
+            results: thesisForm.results || null,
+            ongoing: thesisForm.ongoing,
+        };
+
+        setTheses((prev) => [temporaryThesis, ...prev]);
+
+        setThesisForm({
+            doctoralStudentName: "",
+            thesisTitle: "",
+            defenseYear: "",
+            researchDescription: "",
+            industrialMention: false,
+            internationalMention: false,
+            results: "",
+            ongoing: false,
+        });
+    }
+
+    async function removeThesis(thesis: SupervisedThesis) {
+        if (isEditMode) {
+            await deleteSupervisedThesis(thesis.id);
+        }
+
+        setTheses((prev) => prev.filter((item) => item.id !== thesis.id));
+    }
+
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
 
@@ -373,9 +438,24 @@ export default function ProfessorProfileSetupPage() {
         try {
             if (isEditMode) {
                 await updateProfileAndOptionalCv();
+
                 router.push("/professor/profile");
             } else {
                 await createProfileWithCv();
+
+                for (const thesis of theses) {
+                    await createSupervisedThesis({
+                        doctoralStudentName: thesis.doctoralStudentName,
+                        thesisTitle: thesis.thesisTitle,
+                        defenseYear: thesis.defenseYear,
+                        researchDescription: thesis.researchDescription,
+                        industrialMention: thesis.industrialMention,
+                        internationalMention: thesis.internationalMention,
+                        results: thesis.results,
+                        ongoing: thesis.ongoing,
+                    });
+                }
+
                 router.push("/?success=registered");
             }
         } catch (err) {
@@ -594,6 +674,139 @@ export default function ProfessorProfileSetupPage() {
                             value={additionalInformation}
                             onChange={(e) => setAdditionalInformation(e.target.value)}
                         />
+                    </div>
+
+                    <div className="md:col-span-2 rounded-2xl border p-4">
+                        <h2 className="mb-4 text-lg font-semibold">
+                            Tesis dirigidas previamente o en curso
+                        </h2>
+
+                        <div className="space-y-3">
+                            <input
+                                className="w-full rounded-xl border px-3 py-2"
+                                placeholder="Nombre del doctorando"
+                                value={thesisForm.doctoralStudentName}
+                                onChange={(e) =>
+                                    setThesisForm({ ...thesisForm, doctoralStudentName: e.target.value })
+                                }
+                            />
+
+                            <input
+                                className="w-full rounded-xl border px-3 py-2"
+                                placeholder="Título de la tesis"
+                                value={thesisForm.thesisTitle}
+                                onChange={(e) =>
+                                    setThesisForm({ ...thesisForm, thesisTitle: e.target.value })
+                                }
+                            />
+
+                            <input
+                                className="w-full rounded-xl border px-3 py-2"
+                                type="number"
+                                placeholder="Año de lectura"
+                                value={thesisForm.defenseYear}
+                                onChange={(e) =>
+                                    setThesisForm({ ...thesisForm, defenseYear: e.target.value })
+                                }
+                            />
+
+                            <textarea
+                                className="w-full rounded-xl border px-3 py-2"
+                                placeholder="Líneas de investigación / descripción de la tesis"
+                                value={thesisForm.researchDescription}
+                                onChange={(e) =>
+                                    setThesisForm({ ...thesisForm, researchDescription: e.target.value })
+                                }
+                            />
+
+                            <textarea
+                                className="w-full rounded-xl border px-3 py-2"
+                                placeholder="Resultados: papers, patentes, etc."
+                                value={thesisForm.results}
+                                onChange={(e) =>
+                                    setThesisForm({ ...thesisForm, results: e.target.value })
+                                }
+                            />
+
+                            <div className="grid gap-3 md:grid-cols-3">
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={thesisForm.industrialMention}
+                                        onChange={(e) =>
+                                            setThesisForm({
+                                                ...thesisForm,
+                                                industrialMention: e.target.checked,
+                                            })
+                                        }
+                                    />
+                                    Mención industrial
+                                </label>
+
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={thesisForm.internationalMention}
+                                        onChange={(e) =>
+                                            setThesisForm({
+                                                ...thesisForm,
+                                                internationalMention: e.target.checked,
+                                            })
+                                        }
+                                    />
+                                    Mención internacional
+                                </label>
+
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={thesisForm.ongoing}
+                                        onChange={(e) =>
+                                            setThesisForm({ ...thesisForm, ongoing: e.target.checked })
+                                        }
+                                    />
+                                    En curso
+                                </label>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={addThesisLocally}
+                                className="rounded-xl border px-4 py-2 font-medium"
+                            >
+                                Añadir tesis
+                            </button>
+                        </div>
+
+                        <div className="mt-5 space-y-3">
+                            {theses.length === 0 ? (
+                                <p className="text-sm text-gray-500">
+                                    No hay tesis registradas.
+                                </p>
+                            ) : (
+                                theses.map((thesis) => (
+                                    <div key={thesis.id} className="rounded-xl border p-3">
+                                        <p><strong>Título:</strong> {thesis.thesisTitle}</p>
+                                        <p><strong>Doctorando:</strong> {thesis.doctoralStudentName}</p>
+                                        <p><strong>Año:</strong> {thesis.defenseYear ?? "No indicado"}</p>
+                                        <p><strong>Investigación:</strong> {thesis.researchDescription}</p>
+                                        <p><strong>Resultados:</strong> {thesis.results || "No indicados"}</p>
+                                        <p>
+                                            <strong>Estado:</strong>{" "}
+                                            {thesis.ongoing ? "En curso" : "Finalizada"}
+                                        </p>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => removeThesis(thesis)}
+                                            className="mt-2 rounded-xl border border-red-300 px-3 py-1 text-sm text-red-700"
+                                        >
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
 
                     <div className="md:col-span-2">

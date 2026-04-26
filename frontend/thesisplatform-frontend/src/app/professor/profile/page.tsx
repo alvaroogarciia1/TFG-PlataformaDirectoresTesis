@@ -4,12 +4,31 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getUser, isAuthenticated, logout, clearSession } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
+import {
+    getMySupervisedTheses,
+    createSupervisedThesis,
+    deleteSupervisedThesis,
+} from "@/lib/theses";
+import type { SupervisedThesis } from "@/types/professor";
 
 export default function ProfessorProfilePage() {
     const router = useRouter();
+
     const [profile, setProfile] = useState<any>(null);
+    const [theses, setTheses] = useState<SupervisedThesis[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    const [thesisForm, setThesisForm] = useState({
+        doctoralStudentName: "",
+        thesisTitle: "",
+        defenseYear: "",
+        researchDescription: "",
+        industrialMention: false,
+        internationalMention: false,
+        results: "",
+        ongoing: false,
+    });
 
     useEffect(() => {
         async function loadProfile() {
@@ -32,6 +51,9 @@ export default function ProfessorProfilePage() {
             try {
                 const data = await apiFetch("/professors/me");
                 setProfile(data);
+
+                const loadedTheses = await getMySupervisedTheses();
+                setTheses(loadedTheses);
             } catch (err) {
                 if (err instanceof Error) {
                     if (err.message.includes("Professor profile not found")) {
@@ -56,6 +78,50 @@ export default function ProfessorProfilePage() {
 
         loadProfile();
     }, [router]);
+
+    async function handleCreateThesis(e: React.FormEvent) {
+        e.preventDefault();
+        setError("");
+
+        try {
+            const created = await createSupervisedThesis({
+                doctoralStudentName: thesisForm.doctoralStudentName,
+                thesisTitle: thesisForm.thesisTitle,
+                defenseYear: thesisForm.defenseYear ? Number(thesisForm.defenseYear) : null,
+                researchDescription: thesisForm.researchDescription,
+                industrialMention: thesisForm.industrialMention,
+                internationalMention: thesisForm.internationalMention,
+                results: thesisForm.results || null,
+                ongoing: thesisForm.ongoing,
+            });
+
+            setTheses((prev) => [created, ...prev]);
+
+            setThesisForm({
+                doctoralStudentName: "",
+                thesisTitle: "",
+                defenseYear: "",
+                researchDescription: "",
+                industrialMention: false,
+                internationalMention: false,
+                results: "",
+                ongoing: false,
+            });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "No se ha podido registrar la tesis");
+        }
+    }
+
+    async function handleDeleteThesis(id: number) {
+        setError("");
+
+        try {
+            await deleteSupervisedThesis(id);
+            setTheses((prev) => prev.filter((thesis) => thesis.id !== id));
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "No se ha podido eliminar la tesis");
+        }
+    }
 
     if (loading) {
         return (
@@ -121,10 +187,7 @@ export default function ProfessorProfilePage() {
                             <strong>Programas de doctorado:</strong>
                             <div className="mt-2 flex flex-wrap gap-2">
                                 {(profile.doctoralPrograms || []).map((program: string) => (
-                                    <span
-                                        key={program}
-                                        className="rounded-full border px-3 py-1 text-sm"
-                                    >
+                                    <span key={program} className="rounded-full border px-3 py-1 text-sm">
                                         {program}
                                     </span>
                                 ))}
@@ -135,16 +198,152 @@ export default function ProfessorProfilePage() {
                             <strong>Líneas de investigación:</strong>
                             <div className="mt-2 flex flex-wrap gap-2">
                                 {(profile.researchLines || []).map((line: string) => (
-                                    <span
-                                        key={line}
-                                        className="rounded-full border px-3 py-1 text-sm"
-                                    >
+                                    <span key={line} className="rounded-full border px-3 py-1 text-sm">
                                         {line}
                                     </span>
                                 ))}
                             </div>
                         </div>
                     </div>
+
+                    <section className="rounded-2xl border p-5">
+                        <h2 className="mb-4 text-xl font-semibold">
+                            Tesis dirigidas previamente o en curso
+                        </h2>
+
+                        <form onSubmit={handleCreateThesis} className="mb-6 space-y-4">
+                            <input
+                                className="w-full rounded-xl border px-4 py-2"
+                                placeholder="Nombre del doctorando"
+                                value={thesisForm.doctoralStudentName}
+                                onChange={(e) =>
+                                    setThesisForm({ ...thesisForm, doctoralStudentName: e.target.value })
+                                }
+                                required
+                            />
+
+                            <input
+                                className="w-full rounded-xl border px-4 py-2"
+                                placeholder="Título de la tesis"
+                                value={thesisForm.thesisTitle}
+                                onChange={(e) =>
+                                    setThesisForm({ ...thesisForm, thesisTitle: e.target.value })
+                                }
+                                required
+                            />
+
+                            <input
+                                className="w-full rounded-xl border px-4 py-2"
+                                type="number"
+                                placeholder="Año de lectura"
+                                value={thesisForm.defenseYear}
+                                onChange={(e) =>
+                                    setThesisForm({ ...thesisForm, defenseYear: e.target.value })
+                                }
+                            />
+
+                            <textarea
+                                className="w-full rounded-xl border px-4 py-2"
+                                placeholder="Líneas de investigación / descripción de la tesis"
+                                value={thesisForm.researchDescription}
+                                onChange={(e) =>
+                                    setThesisForm({ ...thesisForm, researchDescription: e.target.value })
+                                }
+                                required
+                            />
+
+                            <textarea
+                                className="w-full rounded-xl border px-4 py-2"
+                                placeholder="Resultados: papers, patentes, etc."
+                                value={thesisForm.results}
+                                onChange={(e) =>
+                                    setThesisForm({ ...thesisForm, results: e.target.value })
+                                }
+                            />
+
+                            <div className="grid gap-3 md:grid-cols-3">
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={thesisForm.industrialMention}
+                                        onChange={(e) =>
+                                            setThesisForm({
+                                                ...thesisForm,
+                                                industrialMention: e.target.checked,
+                                            })
+                                        }
+                                    />
+                                    Mención industrial
+                                </label>
+
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={thesisForm.internationalMention}
+                                        onChange={(e) =>
+                                            setThesisForm({
+                                                ...thesisForm,
+                                                internationalMention: e.target.checked,
+                                            })
+                                        }
+                                    />
+                                    Mención internacional
+                                </label>
+
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={thesisForm.ongoing}
+                                        onChange={(e) =>
+                                            setThesisForm({ ...thesisForm, ongoing: e.target.checked })
+                                        }
+                                    />
+                                    En curso
+                                </label>
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="rounded-xl bg-black px-5 py-3 font-medium text-white"
+                            >
+                                Añadir tesis
+                            </button>
+                        </form>
+
+                        <div className="space-y-4">
+                            {theses.length === 0 ? (
+                                <p className="text-sm text-gray-500">
+                                    No hay tesis registradas.
+                                </p>
+                            ) : (
+                                theses.map((thesis) => (
+                                    <div key={thesis.id} className="rounded-xl border p-4">
+                                        <h3 className="font-semibold">{thesis.thesisTitle}</h3>
+                                        <p><strong>Doctorando:</strong> {thesis.doctoralStudentName}</p>
+                                        <p><strong>Año:</strong> {thesis.defenseYear ?? "No indicado"}</p>
+                                        <p><strong>Investigación:</strong> {thesis.researchDescription}</p>
+                                        <p><strong>Resultados:</strong> {thesis.results || "No indicados"}</p>
+                                        <p>
+                                            <strong>Menciones:</strong>{" "}
+                                            {thesis.industrialMention ? "Industrial " : ""}
+                                            {thesis.internationalMention ? "Internacional " : ""}
+                                            {!thesis.industrialMention && !thesis.internationalMention
+                                                ? "Sin menciones"
+                                                : ""}
+                                        </p>
+                                        <p><strong>Estado:</strong> {thesis.ongoing ? "En curso" : "Finalizada"}</p>
+
+                                        <button
+                                            onClick={() => handleDeleteThesis(thesis.id)}
+                                            className="mt-3 rounded-xl border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+                                        >
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </section>
 
                     <div className="flex gap-3">
                         <button

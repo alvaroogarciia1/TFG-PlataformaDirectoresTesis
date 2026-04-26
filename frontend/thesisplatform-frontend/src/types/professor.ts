@@ -70,3 +70,104 @@ export interface ProfessorProfile {
      */
     researchLines: string[];
 }
+
+/**
+ * Type representing a supervised thesis associated with a professor profile.
+ *
+ * <p>This structure is used to display thesis records previously supervised
+ * or currently in progress by a professor.</p>
+ */
+export interface SupervisedThesis {
+    /**
+     * Unique identifier of the supervised thesis.
+     */
+    id: number;
+
+    /**
+     * Name of the doctoral student who carried out the thesis.
+     */
+    doctoralStudentName: string;
+
+    /**
+     * Title of the thesis.
+     */
+    thesisTitle: string;
+
+    /**
+     * Year in which the thesis was defended.
+     */
+    defenseYear: number | null;
+
+    /**
+     * Description or research lines of the thesis.
+     */
+    researchDescription: string;
+
+    /**
+     * Indicates whether the thesis has an industrial mention.
+     */
+    industrialMention: boolean;
+
+    /**
+     * Indicates whether the thesis has an international mention.
+     */
+    internationalMention: boolean;
+
+    /**
+     * Results obtained from the thesis (e.g., papers, patents).
+     */
+    results: string | null;
+
+    /**
+     * Indicates whether the thesis is currently ongoing.
+     */
+    ongoing: boolean;
+}
+
+/**
+ * Type representing the data required to create a supervised thesis record.
+ *
+ * <p>This structure is used when a professor registers a new thesis
+ * in the system.</p>
+ */
+export interface SupervisedThesisRequest {
+    /**
+     * Name of the doctoral student.
+     */
+    doctoralStudentName: string;
+
+    /**
+     * Title of the thesis.
+     */
+    thesisTitle: string;
+
+    /**
+     * Year of defense of the thesis.
+     */
+    defenseYear: number | null;
+
+    /**
+     * Description or research lines of the thesis.
+     */
+    researchDescription: string;
+
+    /**
+     * Indicates whether the thesis has an industrial mention.
+     */
+    industrialMention: boolean;
+
+    /**
+     * Indicates whether the thesis has an international mention.
+     */
+    internationalMention: boolean;
+
+    /**
+     * Results obtained from the thesis (e.g., papers, patents).
+     */
+    results: string | null;
+
+    /**
+     * Indicates whether the thesis is currently ongoing.
+     */
+    ongoing: boolean;
+}
