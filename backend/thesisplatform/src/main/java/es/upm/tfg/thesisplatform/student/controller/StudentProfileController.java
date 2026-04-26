@@ -21,12 +21,13 @@ import java.util.List;
 /**
  * REST controller responsible for managing student profiles.
  *
- * <p>This controller provides endpoints for:
+ * <p>
+ * This controller provides endpoints for:
  * <ul>
- *     <li>Retrieving and updating the authenticated student profile</li>
- *     <li>Searching student profiles</li>
- *     <li>Uploading and downloading the student CV</li>
- *     <li>Initial profile setup together with CV upload</li>
+ * <li>Retrieving and updating the authenticated student profile</li>
+ * <li>Searching student profiles</li>
+ * <li>Uploading and downloading the student CV</li>
+ * <li>Initial profile setup together with CV upload</li>
  * </ul>
  */
 @RestController
@@ -55,7 +56,7 @@ public class StudentProfileController {
      * Creates or updates the profile of the currently authenticated student.
      *
      * @param authentication authentication object containing the current user
-     * @param request request DTO with the new profile data
+     * @param request        request DTO with the new profile data
      * @return updated student profile response
      */
     @PreAuthorize("hasRole('STUDENT')")
@@ -69,8 +70,10 @@ public class StudentProfileController {
     /**
      * Searches student profiles using structured filters.
      *
-     * <p>This endpoint is restricted to professors, who use it to manually
-     * search for potential doctoral candidates.</p>
+     * <p>
+     * This endpoint is restricted to professors, who use it to manually
+     * search for potential doctoral candidates.
+     * </p>
      *
      * @param request request DTO containing optional filters
      * @return list of student profiles matching the search criteria
@@ -85,7 +88,7 @@ public class StudentProfileController {
      * Uploads or replaces the CV of the authenticated student.
      *
      * @param authentication authentication object containing the current user
-     * @param file uploaded CV file
+     * @param file           uploaded CV file
      * @return updated student profile response
      */
     @PreAuthorize("hasRole('STUDENT')")
@@ -97,18 +100,21 @@ public class StudentProfileController {
     }
 
     /**
-     * Searches students by thesis title.
+     * Searches students by their full name.
      *
-     * <p>This endpoint is public in the current implementation and supports
-     * partial matching over the proposed thesis title.</p>
+     * <p>
+     * This endpoint is restricted to professors and supports partial matching
+     * over the student's first name and last name.
+     * </p>
      *
-     * @param title optional thesis title fragment to search
+     * @param name optional full-name fragment to search
      * @return list of matching student profiles
      */
+    @PreAuthorize("hasRole('PROFESSOR')")
     @GetMapping("/search")
-    public List<StudentProfileResponse> searchByThesisTitle(
-            @RequestParam(required = false) String title) {
-        return studentProfileService.searchByThesisTitle(title);
+    public List<StudentProfileResponse> searchByName(
+            @RequestParam(required = false) String name) {
+        return studentProfileService.searchByName(name);
     }
 
     /**
@@ -117,6 +123,7 @@ public class StudentProfileController {
      * @param authentication authentication object containing the current user
      * @return response containing the CV as a PDF resource
      */
+    @PreAuthorize("hasRole('STUDENT')")
     @GetMapping("/me/cv/download")
     public ResponseEntity<Resource> downloadMyCv(Authentication authentication) {
         String email = authentication.getName();
@@ -131,14 +138,17 @@ public class StudentProfileController {
     /**
      * Performs the initial student profile setup together with CV upload.
      *
-     * <p>This endpoint is intended for multipart form submissions where
-     * profile data and CV file are sent together.</p>
+     * <p>
+     * This endpoint is intended for multipart form submissions where
+     * profile data and CV file are sent together.
+     * </p>
      *
-     * @param request student profile data
-     * @param file uploaded CV file
+     * @param request        student profile data
+     * @param file           uploaded CV file
      * @param authentication authentication object containing the current user
      * @return created student profile response
      */
+    @PreAuthorize("hasRole('STUDENT')")
     @PostMapping(value = "/me/setup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public StudentProfileResponse setupProfile(
             @RequestPart("data") StudentProfileRequest request,

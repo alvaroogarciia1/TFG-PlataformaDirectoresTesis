@@ -24,7 +24,7 @@ export default function ProfessorSearchPage() {
     const [doctoralPrograms, setDoctoralPrograms] = useState<DoctoralProgram[]>([]);
     const [researchLines, setResearchLines] = useState<ResearchLine[]>([]);
 
-    const [title, setTitle] = useState("");
+    const [name, setName] = useState("");
     const [showResearchLineFilter, setShowResearchLineFilter] = useState(false);
     const [showDoctoralProgramFilter, setShowDoctoralProgramFilter] = useState(false);
     const [showFundingFilter, setShowFundingFilter] = useState(false);
@@ -119,16 +119,16 @@ export default function ProfessorSearchPage() {
     ]);
 
     const manualResults = useMemo(() => {
-        const normalizedTitle = title.trim().toLowerCase();
+        const normalizedName = name.trim().toLowerCase();
 
-        if (!normalizedTitle) {
+        if (!normalizedName) {
             return manualBaseResults;
         }
 
         return manualBaseResults.filter((student) =>
-            student.proposedThesisTitle.toLowerCase().includes(normalizedTitle)
+            `${student.firstName} ${student.lastName}`.toLowerCase().includes(normalizedName)
         );
-    }, [manualBaseResults, title]);
+    }, [manualBaseResults, name]);
 
     async function handleManualSearch() {
         setLoading(true);
@@ -225,7 +225,7 @@ export default function ProfessorSearchPage() {
     }
 
     function clearManualFilters() {
-        setTitle("");
+        setName("");
         setSelectedResearchLineId("");
         setSelectedDoctoralProgramId("");
         setHasFunding("any");
@@ -276,7 +276,7 @@ export default function ProfessorSearchPage() {
                     <h1 className="mb-3 text-3xl font-bold">Búsqueda de estudiantes de tesis</h1>
                     <p className="max-w-4xl text-lg italic text-gray-600">
                         Puede consultar todos los estudiantes registrados, filtrar resultados y
-                        acotar la lista por título provisional. También puede utilizar la búsqueda
+                        acotar la lista por nombre. También puede utilizar la búsqueda
                         automática.
                     </p>
                 </div>
@@ -314,9 +314,9 @@ export default function ProfessorSearchPage() {
                 <>
                     <section className="mb-8 rounded-[2rem] border border-gray-300 bg-white p-6 md:p-8">
                         <input
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Buscar título provisional"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Buscar nombre de estudiante"
                             className="mb-6 w-full rounded-3xl border border-gray-300 bg-white px-6 py-4 text-lg text-gray-900 outline-none placeholder:text-gray-400"
                         />
 

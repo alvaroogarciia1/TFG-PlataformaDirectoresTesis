@@ -96,14 +96,14 @@ export async function searchProfessorsAdvanced(
 }
 
 /**
- * Searches students by proposed thesis title using the public search endpoint.
+ * Searches students by full name using the search endpoint.
  *
- * @param title thesis title fragment to search
+ * @param name full-name fragment to search
  * @returns list of student profiles matching the query
  */
-export async function searchStudentsByTitle(title: string): Promise<StudentProfile[]> {
+export async function searchStudentsByName(name: string): Promise<StudentProfile[]> {
     return apiFetch<StudentProfile[]>(
-        `/students/search?title=${encodeURIComponent(title)}`
+        `/students/search?name=${encodeURIComponent(name)}`
     );
 }
 

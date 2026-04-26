@@ -15,8 +15,10 @@ import java.util.Optional;
 /**
  * Repository for accessing and querying student profiles.
  *
- * <p>It includes convenience methods for lookups by user identity and
- * custom queries for manual search operations.</p>
+ * <p>
+ * It includes convenience methods for lookups by user identity and
+ * custom queries for manual search operations.
+ * </p>
  */
 public interface StudentProfileRepository extends JpaRepository<StudentProfile, Long> {
 
@@ -31,7 +33,8 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
   Optional<StudentProfile> findDetailedByUserId(Long userId);
 
   /**
-   * Retrieves a student profile by user email with related user, doctoral programs
+   * Retrieves a student profile by user email with related user, doctoral
+   * programs
    * and research lines eagerly loaded.
    *
    * @param email user email
@@ -75,11 +78,11 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
   /**
    * Searches student profiles using structured optional filters.
    *
-   * @param programIds doctoral program identifiers
-   * @param lineIds research line identifiers
-   * @param hasFunding funding filter
+   * @param programIds        doctoral program identifiers
+   * @param lineIds           research line identifiers
+   * @param hasFunding        funding filter
    * @param willingToRelocate relocation filter
-   * @param dedicationType dedication type filter
+   * @param dedicationType    dedication type filter
    * @param originInstitution origin institution text filter
    * @return list of student profiles matching the search criteria
    */
@@ -103,15 +106,20 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
       @Param("originInstitution") String originInstitution);
 
   /**
-   * Searches student profiles by proposed thesis title using partial matching.
+   * Searches student profiles by full name using partial matching.
    *
-   * @param title thesis title fragment
+   * <p>
+   * The search is case-insensitive and matches against the concatenation
+   * of first name and last name.
+   * </p>
+   *
+   * @param name name fragment
    * @return list of matching student profiles
    */
   @Query("""
           SELECT s FROM StudentProfile s
-          WHERE (:title IS NULL OR :title = ''
-                 OR LOWER(s.proposedThesisTitle) LIKE LOWER(CONCAT('%', :title, '%')))
+          WHERE (:name IS NULL OR :name = ''
+                 OR LOWER(CONCAT(s.firstName, ' ', s.lastName)) LIKE LOWER(CONCAT('%', :name, '%')))
       """)
-  List<StudentProfile> searchByThesisTitle(@Param("title") String title);
+  List<StudentProfile> searchByName(@Param("name") String name);
 }

@@ -34,12 +34,13 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * Service responsible for student profile management.
  *
- * <p>This service encapsulates the business logic related to:
+ * <p>
+ * This service encapsulates the business logic related to:
  * <ul>
- *     <li>Retrieval and update of student profiles</li>
- *     <li>Manual search over student profiles</li>
- *     <li>CV upload and retrieval</li>
- *     <li>Initial profile creation with CV</li>
+ * <li>Retrieval and update of student profiles</li>
+ * <li>Manual search over student profiles</li>
+ * <li>CV upload and retrieval</li>
+ * <li>Initial profile creation with CV</li>
  * </ul>
  */
 @Service
@@ -89,12 +90,14 @@ public class StudentProfileService {
         /**
          * Creates or updates the student profile associated with the given email.
          *
-         * @param email authenticated student email
+         * @param email   authenticated student email
          * @param request request DTO with profile data
          * @return saved student profile response
          * @throws StudentProfileNotFoundException if the user does not exist
-         * @throws ForbiddenOperationException if the user does not have student role
-         * @throws ResourceNotFoundException if one or more doctoral program ids do not exist
+         * @throws ForbiddenOperationException     if the user does not have student
+         *                                         role
+         * @throws ResourceNotFoundException       if one or more doctoral program ids
+         *                                         do not exist
          */
         public StudentProfileResponse upsertMyProfile(String email, StudentProfileRequest request) {
                 User user = userRepository.findByEmail(email)
@@ -242,7 +245,7 @@ public class StudentProfileService {
          * Uploads or replaces the CV of the authenticated student.
          *
          * @param email authenticated student email
-         * @param file uploaded CV file
+         * @param file  uploaded CV file
          * @return updated student profile response
          * @throws ResourceNotFoundException if the profile does not exist
          */
@@ -261,14 +264,14 @@ public class StudentProfileService {
         }
 
         /**
-         * Searches student profiles by proposed thesis title.
+         * Searches student profiles by full name.
          *
-         * @param title optional thesis title fragment
-         * @return list of student profiles whose thesis title matches the query
+         * @param name optional name fragment
+         * @return list of student profiles whose full name matches the query
          */
         @Transactional(readOnly = true)
-        public List<StudentProfileResponse> searchByThesisTitle(String title) {
-                return studentProfileRepository.searchByThesisTitle(title)
+        public List<StudentProfileResponse> searchByName(String name) {
+                return studentProfileRepository.searchByName(name)
                                 .stream()
                                 .map(this::mapToResponse)
                                 .toList();
@@ -296,13 +299,13 @@ public class StudentProfileService {
         /**
          * Creates the initial student profile together with the uploaded CV.
          *
-         * @param email authenticated student email
+         * @param email   authenticated student email
          * @param request request DTO with profile data
-         * @param file uploaded CV file
+         * @param file    uploaded CV file
          * @return created student profile response
-         * @throws ResourceNotFoundException if the user does not exist
+         * @throws ResourceNotFoundException   if the user does not exist
          * @throws ForbiddenOperationException if the profile already exists
-         * @throws InvalidFileException if no CV file is provided
+         * @throws InvalidFileException        if no CV file is provided
          */
         @Transactional
         public StudentProfileResponse createProfileWithCv(

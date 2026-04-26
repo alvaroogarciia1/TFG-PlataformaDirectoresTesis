@@ -121,6 +121,7 @@ public class ProfessorProfileController {
      * @param authentication authentication object containing the current user
      * @return response containing the CV as a PDF resource
      */
+    @PreAuthorize("hasRole('PROFESSOR')")
     @GetMapping("/me/cv/download")
     public ResponseEntity<Resource> downloadMyCv(Authentication authentication) {
         String email = authentication.getName();
@@ -145,6 +146,7 @@ public class ProfessorProfileController {
      * @param authentication authentication object containing the current user
      * @return created professor profile response
      */
+    @PreAuthorize("hasRole('PROFESSOR')")
     @PostMapping(value = "/me/setup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ProfessorProfileResponse setupProfile(
             @RequestPart("data") ProfessorProfileRequest request,
