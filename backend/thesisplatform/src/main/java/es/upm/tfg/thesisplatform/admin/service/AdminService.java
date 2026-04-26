@@ -8,6 +8,7 @@ import es.upm.tfg.thesisplatform.exception.ForbiddenOperationException;
 import es.upm.tfg.thesisplatform.exception.ResourceNotFoundException;
 import es.upm.tfg.thesisplatform.professor.domain.ProfessorProfile;
 import es.upm.tfg.thesisplatform.professor.dto.ProfessorProfileResponse;
+import es.upm.tfg.thesisplatform.professor.dto.SupervisedThesisResponse;
 import es.upm.tfg.thesisplatform.professor.repository.ProfessorProfileRepository;
 import es.upm.tfg.thesisplatform.student.domain.StudentProfile;
 import es.upm.tfg.thesisplatform.student.dto.StudentProfileResponse;
@@ -297,6 +298,29 @@ public class AdminService {
                                                 profile.getResearchLines().stream()
                                                                 .map(r -> r.getName())
                                                                 .toList())
+                                .supervisedTheses(
+                                                profile.getSupervisedTheses() == null
+                                                                ? List.of()
+                                                                : profile.getSupervisedTheses().stream()
+                                                                                .map(thesis -> SupervisedThesisResponse
+                                                                                                .builder()
+                                                                                                .id(thesis.getId())
+                                                                                                .doctoralStudentName(
+                                                                                                                thesis.getDoctoralStudentName())
+                                                                                                .thesisTitle(thesis
+                                                                                                                .getThesisTitle())
+                                                                                                .defenseYear(thesis
+                                                                                                                .getDefenseYear())
+                                                                                                .researchDescription(
+                                                                                                                thesis.getResearchDescription())
+                                                                                                .industrialMention(
+                                                                                                                thesis.isIndustrialMention())
+                                                                                                .internationalMention(
+                                                                                                                thesis.isInternationalMention())
+                                                                                                .results(thesis.getResults())
+                                                                                                .ongoing(thesis.isOngoing())
+                                                                                                .build())
+                                                                                .toList())
                                 .build();
         }
 
