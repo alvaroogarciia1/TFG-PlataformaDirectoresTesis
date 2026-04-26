@@ -17,8 +17,10 @@ import java.util.List;
 /**
  * Service responsible for supervised thesis management.
  *
- * <p>This service encapsulates the logic for creating, retrieving and deleting
- * supervised thesis records linked to a professor profile.</p>
+ * <p>
+ * This service encapsulates the logic for creating, retrieving and deleting
+ * supervised thesis records linked to a professor profile.
+ * </p>
  */
 @Service
 @RequiredArgsConstructor
@@ -38,9 +40,10 @@ public class SupervisedThesisService {
      * Creates a new supervised thesis record for the given professor.
      *
      * @param professorEmail email of the authenticated professor
-     * @param request request DTO containing thesis data
+     * @param request        request DTO containing thesis data
      * @return created supervised thesis response
-     * @throws ProfessorProfileNotFoundException if the professor profile does not exist
+     * @throws ProfessorProfileNotFoundException if the professor profile does not
+     *                                           exist
      */
     public SupervisedThesisResponse create(String professorEmail, SupervisedThesisRequest request) {
         ProfessorProfile professorProfile = professorProfileRepository.findByUserEmail(professorEmail)
@@ -76,12 +79,14 @@ public class SupervisedThesisService {
     }
 
     /**
-     * Deletes a supervised thesis record if it belongs to the authenticated professor.
+     * Deletes a supervised thesis record if it belongs to the authenticated
+     * professor.
      *
      * @param professorEmail email of the authenticated professor
-     * @param thesisId identifier of the thesis to delete
+     * @param thesisId       identifier of the thesis to delete
      * @throws SupervisedThesisNotFoundException if the thesis does not exist
-     * @throws ForbiddenOperationException if the thesis does not belong to the professor
+     * @throws ForbiddenOperationException       if the thesis does not belong to
+     *                                           the professor
      */
     public void delete(String professorEmail, Long thesisId) {
         SupervisedThesis thesis = supervisedThesisRepository.findById(thesisId)
@@ -92,6 +97,39 @@ public class SupervisedThesisService {
         }
 
         supervisedThesisRepository.delete(thesis);
+    }
+
+    /**
+     * Updates a supervised thesis record if it belongs to the authenticated
+     * professor.
+     *
+     * @param professorEmail email of the authenticated professor
+     * @param thesisId       identifier of the thesis to update
+     * @param request        request DTO containing the updated thesis data
+     * @return updated supervised thesis response
+     * @throws SupervisedThesisNotFoundException if the thesis does not exist
+     * @throws ForbiddenOperationException       if the thesis does not belong to
+     *                                           the professor
+     */
+    public SupervisedThesisResponse update(String professorEmail, Long thesisId, SupervisedThesisRequest request) {
+        SupervisedThesis thesis = supervisedThesisRepository.findById(thesisId)
+                .orElseThrow(() -> new SupervisedThesisNotFoundException(thesisId));
+
+        if (!thesis.getProfessorProfile().getUser().getEmail().equals(professorEmail)) {
+            throw new ForbiddenOperationException("You cannot update a supervised thesis that is not yours");
+        }
+
+        thesis.setDoctoralStudentName(request.getDoctoralStudentName().trim());
+        thesis.setThesisTitle(request.getThesisTitle().trim());
+        thesis.setDefenseYear(request.getDefenseYear());
+        thesis.setResearchDescription(request.getResearchDescription());
+        thesis.setIndustrialMention(Boolean.TRUE.equals(request.getIndustrialMention()));
+        thesis.setInternationalMention(Boolean.TRUE.equals(request.getInternationalMention()));
+        thesis.setResults(request.getResults());
+        thesis.setOngoing(Boolean.TRUE.equals(request.getOngoing()));
+
+        SupervisedThesis saved = supervisedThesisRepository.save(thesis);
+        return mapToResponse(saved);
     }
 
     /**

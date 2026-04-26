@@ -9,6 +9,17 @@ export function getMySupervisedTheses() {
 }
 
 /**
+ * Updates an existing supervised thesis owned by the authenticated professor.
+ *
+ */
+export function updateSupervisedThesis(id: number, data: SupervisedThesisRequest) {
+    return apiFetch<SupervisedThesis>(`/professors/me/theses/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+    });
+}
+
+/**
  * Creates a new supervised thesis for the authenticated professor.
  */
 export function createSupervisedThesis(data: SupervisedThesisRequest) {
@@ -25,4 +36,5 @@ export function deleteSupervisedThesis(id: number) {
     return apiFetch<void>(`/professors/me/theses/${id}`, {
         method: "DELETE",
     });
+
 }

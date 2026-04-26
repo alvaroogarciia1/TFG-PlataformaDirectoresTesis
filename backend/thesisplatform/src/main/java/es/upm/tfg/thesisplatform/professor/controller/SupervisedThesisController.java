@@ -29,7 +29,7 @@ public class SupervisedThesisController {
      * Creates a new supervised thesis record for the authenticated professor.
      *
      * @param authentication authentication object containing the current user
-     * @param request request DTO with thesis data
+     * @param request        request DTO with thesis data
      * @return created supervised thesis response
      */
     @PreAuthorize("hasRole('PROFESSOR')")
@@ -56,7 +56,7 @@ public class SupervisedThesisController {
      * Deletes one supervised thesis record owned by the authenticated professor.
      *
      * @param authentication authentication object containing the current user
-     * @param id identifier of the thesis to delete
+     * @param id             identifier of the thesis to delete
      */
     @PreAuthorize("hasRole('PROFESSOR')")
     @DeleteMapping("/{id}")
@@ -64,5 +64,23 @@ public class SupervisedThesisController {
             Authentication authentication,
             @PathVariable Long id) {
         supervisedThesisService.delete(authentication.getName(), id);
+    }
+
+    /**
+     * Updates an existing supervised thesis record owned by the authenticated
+     * professor.
+     *
+     * @param authentication authentication object containing the current user
+     * @param id             identifier of the thesis to update
+     * @param request        request DTO with the updated thesis data
+     * @return updated supervised thesis response
+     */
+    @PreAuthorize("hasRole('PROFESSOR')")
+    @PutMapping("/{id}")
+    public SupervisedThesisResponse update(
+            Authentication authentication,
+            @PathVariable Long id,
+            @Valid @RequestBody SupervisedThesisRequest request) {
+        return supervisedThesisService.update(authentication.getName(), id, request);
     }
 }
