@@ -4,6 +4,7 @@ import es.upm.tfg.thesisplatform.user.domain.User;
 import es.upm.tfg.thesisplatform.user.domain.UserRole;
 import es.upm.tfg.thesisplatform.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,18 @@ public class AdminDataInitializer implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     /**
+     * Email address of the default administrator account.
+     */
+    @Value("${app.admin.email}")
+    private String adminEmail;
+
+    /**
+     * Password of the default administrator account.
+     */
+    @Value("${app.admin.password}")
+    private String adminPassword;
+
+    /**
      * Executes the initialization logic once the Spring Boot application has
      * started.
      *
@@ -39,12 +52,10 @@ public class AdminDataInitializer implements CommandLineRunner {
      */
     @Override
     public void run(String... args) {
-        String adminEmail = "admin@thesisplatform.com";
-
         if (!userRepository.existsByEmail(adminEmail)) {
             User admin = User.builder()
                     .email(adminEmail)
-                    .password(passwordEncoder.encode("Admin1234"))
+                    .password(passwordEncoder.encode(adminPassword))
                     .role(UserRole.ADMIN)
                     .active(true)
                     .build();
