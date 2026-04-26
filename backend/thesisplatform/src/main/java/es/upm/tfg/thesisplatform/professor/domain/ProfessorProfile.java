@@ -12,9 +12,11 @@ import java.util.Set;
 /**
  * Entity representing the academic profile of a professor.
  *
- * <p>This entity stores institutional data, supervision availability,
+ * <p>
+ * This entity stores institutional data, supervision availability,
  * research lines, doctoral programs and CV reference, and is used in
- * both manual search and automatic matching processes.</p>
+ * both manual search and automatic matching processes.
+ * </p>
  */
 @Entity
 @Table(name = "professor_profile")
@@ -114,7 +116,14 @@ public class ProfessorProfile {
     private LocalDateTime updatedAt;
 
     /**
-     * Initializes creation and update timestamps before the entity is first persisted.
+     * The previous or current theses directed by the professor.
+     */
+    @OneToMany(mappedBy = "professorProfile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<SupervisedThesis> supervisedTheses;
+
+    /**
+     * Initializes creation and update timestamps before the entity is first
+     * persisted.
      */
     @PrePersist
     protected void onCreate() {

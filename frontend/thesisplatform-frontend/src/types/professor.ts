@@ -69,6 +69,11 @@ export interface ProfessorProfile {
      * Names of the research lines associated with the professor.
      */
     researchLines: string[];
+
+    /**
+ * Supervised theses previously directed or currently in progress.
+ */
+    supervisedTheses?: SupervisedThesis[];
 }
 
 /**

@@ -577,6 +577,33 @@ export default function StudentSearchPage() {
                             <p><b>Programas de doctorado:</b> {selectedProfessor.doctoralPrograms.join(", ") || "-"}</p>
                             <p><b>Líneas de investigación:</b> {selectedProfessor.researchLines.join(", ") || "-"}</p>
                             <p><b>Información adicional:</b> {selectedProfessor.additionalInformation || "-"}</p>
+                            <div>
+                                <b>Tesis dirigidas previamente o en curso:</b>
+                                <div className="mt-2 space-y-3">
+                                    {(selectedProfessor.supervisedTheses || []).length > 0 ? (
+                                        selectedProfessor.supervisedTheses!.map((thesis) => (
+                                            <div key={thesis.id} className="rounded-xl border border-white/30 p-3">
+                                                <p><b>Título:</b> {thesis.thesisTitle}</p>
+                                                <p><b>Doctorando:</b> {thesis.doctoralStudentName}</p>
+                                                <p><b>Año:</b> {thesis.defenseYear ?? "No indicado"}</p>
+                                                <p><b>Investigación:</b> {thesis.researchDescription}</p>
+                                                <p><b>Resultados:</b> {thesis.results || "No indicados"}</p>
+                                                <p>
+                                                    <b>Menciones:</b>{" "}
+                                                    {thesis.industrialMention ? "Industrial " : ""}
+                                                    {thesis.internationalMention ? "Internacional " : ""}
+                                                    {!thesis.industrialMention && !thesis.internationalMention
+                                                        ? "Sin menciones"
+                                                        : ""}
+                                                </p>
+                                                <p><b>Estado:</b> {thesis.ongoing ? "En curso" : "Finalizada"}</p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-gray-300">No hay tesis registradas.</p>
+                                    )}
+                                </div>
+                            </div>
                             <p><b>CV:</b>{" "}
                                 {selectedProfessor.cvUrl ? (
                                     <a

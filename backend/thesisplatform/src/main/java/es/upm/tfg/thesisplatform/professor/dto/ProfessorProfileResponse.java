@@ -78,4 +78,9 @@ public class ProfessorProfileResponse {
      * Names of the research lines associated with the professor.
      */
     private List<String> researchLines;
+
+    /**
+     * The previous or current theses directed by the professor.
+     */
+    private List<SupervisedThesisResponse> supervisedTheses;
 }

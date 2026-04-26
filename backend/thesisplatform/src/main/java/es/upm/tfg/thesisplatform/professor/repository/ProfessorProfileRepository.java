@@ -14,8 +14,10 @@ import java.util.Optional;
 /**
  * Repository for accessing and querying professor profiles.
  *
- * <p>It includes convenience methods for lookups by user identity and
- * custom queries for manual search operations.</p>
+ * <p>
+ * It includes convenience methods for lookups by user identity and
+ * custom queries for manual search operations.
+ * </p>
  */
 public interface ProfessorProfileRepository extends JpaRepository<ProfessorProfile, Long> {
 
@@ -54,12 +56,28 @@ public interface ProfessorProfileRepository extends JpaRepository<ProfessorProfi
   /**
    * Searches professor profiles using structured optional filters.
    *
-   * @param programIds doctoral program identifiers
-   * @param lineIds research line identifiers
-   * @param available availability filter
+   * <p>
+   * This query allows filtering by:
+   * <ul>
+   * <li>Doctoral programs</li>
+   * <li>Research lines</li>
+   * <li>Availability</li>
+   * <li>Institution (partial match)</li>
+   * </ul>
+   *
+   * <p>
+   * Related entities such as user, doctoral programs, research lines and
+   * supervised theses are eagerly loaded to avoid lazy loading issues
+   * in higher layers.
+   * </p>
+   *
+   * @param programIds  doctoral program identifiers
+   * @param lineIds     research line identifiers
+   * @param available   availability filter
    * @param institution institution text filter
    * @return list of professor profiles matching the search criteria
    */
+  @EntityGraph(attributePaths = { "user", "doctoralPrograms", "researchLines", "supervisedTheses" })
   @Query("""
           SELECT DISTINCT p FROM ProfessorProfile p
           LEFT JOIN p.doctoralPrograms dp
@@ -78,9 +96,20 @@ public interface ProfessorProfileRepository extends JpaRepository<ProfessorProfi
   /**
    * Searches professor profiles by full name using partial matching.
    *
+   * <p>
+   * The search is case-insensitive and matches against the concatenation
+   * of first name and last name.
+   * </p>
+   *
+   * <p>
+   * Related entities such as user, doctoral programs, research lines and
+   * supervised theses are eagerly loaded.
+   * </p>
+   *
    * @param name name fragment
    * @return list of matching professor profiles
    */
+  @EntityGraph(attributePaths = { "user", "doctoralPrograms", "researchLines", "supervisedTheses" })
   @Query("""
           SELECT DISTINCT p FROM ProfessorProfile p
           WHERE (:name IS NULL OR :name = ''
@@ -89,22 +118,33 @@ public interface ProfessorProfileRepository extends JpaRepository<ProfessorProfi
   List<ProfessorProfile> searchByName(@Param("name") String name);
 
   /**
-   * Retrieves a professor profile with related user, doctoral programs
-   * and research lines eagerly loaded.
+   * Retrieves a professor profile with related user, doctoral programs,
+   * research lines and supervised theses eagerly loaded.
+   *
+   * <p>
+   * This method is used when a fully detailed view of the profile is required,
+   * including all associated thesis records.
+   * </p>
    *
    * @param userId user identifier
    * @return optional containing the fully loaded profile
    */
-  @EntityGraph(attributePaths = { "user", "doctoralPrograms", "researchLines" })
+  @EntityGraph(attributePaths = { "user", "doctoralPrograms", "researchLines", "supervisedTheses" })
   Optional<ProfessorProfile> findDetailedByUserId(Long userId);
 
   /**
-   * Retrieves a professor profile by user email with related user, doctoral programs
-   * and research lines eagerly loaded.
+   * Retrieves a professor profile by user email with related user, doctoral
+   * programs,
+   * research lines and supervised theses eagerly loaded.
+   *
+   * <p>
+   * This method is typically used to retrieve the authenticated professor profile
+   * with all its associated data.
+   * </p>
    *
    * @param email user email
    * @return optional containing the fully loaded profile
    */
-  @EntityGraph(attributePaths = { "user", "doctoralPrograms", "researchLines" })
+  @EntityGraph(attributePaths = { "user", "doctoralPrograms", "researchLines", "supervisedTheses" })
   Optional<ProfessorProfile> findDetailedByUserEmail(String email);
 }

@@ -24,6 +24,18 @@ type StudentProfile = {
     researchLines?: string[];
 };
 
+type SupervisedThesis = {
+    id: number;
+    doctoralStudentName: string;
+    thesisTitle: string;
+    defenseYear: number | null;
+    researchDescription: string;
+    industrialMention: boolean;
+    internationalMention: boolean;
+    results: string | null;
+    ongoing: boolean;
+};
+
 type ProfessorProfile = {
     firstName: string;
     lastName: string;
@@ -35,6 +47,7 @@ type ProfessorProfile = {
     cvUrl: string;
     doctoralPrograms?: string[];
     researchLines?: string[];
+    supervisedTheses?: SupervisedThesis[];
 };
 
 type AdminUserDetail = {
@@ -405,6 +418,38 @@ export default function AdminUserDetailPage() {
                                         )
                                     ) : (
                                         <span className="text-sm text-gray-500">No disponibles</span>
+                                    )}
+                                </div>
+                            </div>
+                            <div>
+                                <strong>Tesis dirigidas previamente o en curso:</strong>
+                                <div className="mt-2 space-y-3">
+                                    {(userDetail.professorProfile.supervisedTheses || []).length > 0 ? (
+                                        userDetail.professorProfile.supervisedTheses!.map((thesis) => (
+                                            <div key={thesis.id} className="rounded-xl border p-3">
+                                                <p><strong>Título:</strong> {thesis.thesisTitle}</p>
+                                                <p><strong>Doctorando:</strong> {thesis.doctoralStudentName}</p>
+                                                <p><strong>Año:</strong> {thesis.defenseYear ?? "No indicado"}</p>
+                                                <p><strong>Investigación:</strong> {thesis.researchDescription}</p>
+                                                <p><strong>Resultados:</strong> {thesis.results || "No indicados"}</p>
+                                                <p>
+                                                    <strong>Menciones:</strong>{" "}
+                                                    {thesis.industrialMention ? "Industrial " : ""}
+                                                    {thesis.internationalMention ? "Internacional " : ""}
+                                                    {!thesis.industrialMention && !thesis.internationalMention
+                                                        ? "Sin menciones"
+                                                        : ""}
+                                                </p>
+                                                <p>
+                                                    <strong>Estado:</strong>{" "}
+                                                    {thesis.ongoing ? "En curso" : "Finalizada"}
+                                                </p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <span className="text-sm text-gray-500">
+                                            No hay tesis registradas
+                                        </span>
                                     )}
                                 </div>
                             </div>

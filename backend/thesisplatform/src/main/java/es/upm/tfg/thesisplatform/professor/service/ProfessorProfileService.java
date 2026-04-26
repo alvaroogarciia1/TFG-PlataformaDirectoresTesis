@@ -12,6 +12,7 @@ import es.upm.tfg.thesisplatform.professor.domain.ProfessorProfile;
 import es.upm.tfg.thesisplatform.professor.dto.ProfessorProfileRequest;
 import es.upm.tfg.thesisplatform.professor.dto.ProfessorProfileResponse;
 import es.upm.tfg.thesisplatform.professor.dto.ProfessorSearchRequest;
+import es.upm.tfg.thesisplatform.professor.dto.SupervisedThesisResponse;
 import es.upm.tfg.thesisplatform.professor.repository.ProfessorProfileRepository;
 import es.upm.tfg.thesisplatform.storage.FileStorageService;
 import es.upm.tfg.thesisplatform.user.domain.User;
@@ -35,12 +36,13 @@ import java.util.stream.Collectors;
 /**
  * Service responsible for professor profile management.
  *
- * <p>This service encapsulates the business logic related to:
+ * <p>
+ * This service encapsulates the business logic related to:
  * <ul>
- *     <li>Retrieval and update of professor profiles</li>
- *     <li>Manual search over professor profiles</li>
- *     <li>CV upload and retrieval</li>
- *     <li>Initial profile creation with CV</li>
+ * <li>Retrieval and update of professor profiles</li>
+ * <li>Manual search over professor profiles</li>
+ * <li>CV upload and retrieval</li>
+ * <li>Initial profile creation with CV</li>
  * </ul>
  */
 @Service
@@ -90,12 +92,14 @@ public class ProfessorProfileService {
         /**
          * Creates or updates the professor profile associated with the given email.
          *
-         * @param email authenticated professor email
+         * @param email   authenticated professor email
          * @param request request DTO with profile data
          * @return saved professor profile response
          * @throws ProfessorProfileNotFoundException if the user does not exist
-         * @throws ForbiddenOperationException if the user does not have professor role
-         * @throws ResourceNotFoundException if one or more doctoral program ids do not exist
+         * @throws ForbiddenOperationException       if the user does not have professor
+         *                                           role
+         * @throws ResourceNotFoundException         if one or more doctoral program ids
+         *                                           do not exist
          */
         public ProfessorProfileResponse upsertMyProfile(String email, ProfessorProfileRequest request) {
                 User user = userRepository.findByEmail(email)
@@ -178,6 +182,29 @@ public class ProfessorProfileService {
                                                 profile.getResearchLines().stream()
                                                                 .map(ResearchLine::getName)
                                                                 .toList())
+                                .supervisedTheses(
+                                                profile.getSupervisedTheses() == null
+                                                                ? List.of()
+                                                                : profile.getSupervisedTheses().stream()
+                                                                                .map(thesis -> SupervisedThesisResponse
+                                                                                                .builder()
+                                                                                                .id(thesis.getId())
+                                                                                                .doctoralStudentName(
+                                                                                                                thesis.getDoctoralStudentName())
+                                                                                                .thesisTitle(
+                                                                                                                thesis.getThesisTitle())
+                                                                                                .defenseYear(
+                                                                                                                thesis.getDefenseYear())
+                                                                                                .researchDescription(
+                                                                                                                thesis.getResearchDescription())
+                                                                                                .industrialMention(
+                                                                                                                thesis.isIndustrialMention())
+                                                                                                .internationalMention(
+                                                                                                                thesis.isInternationalMention())
+                                                                                                .results(thesis.getResults())
+                                                                                                .ongoing(thesis.isOngoing())
+                                                                                                .build())
+                                                                                .toList())
                                 .build();
         }
 
@@ -230,7 +257,7 @@ public class ProfessorProfileService {
          * Uploads or replaces the CV of the authenticated professor.
          *
          * @param email authenticated professor email
-         * @param file uploaded CV file
+         * @param file  uploaded CV file
          * @return updated professor profile response
          * @throws ResourceNotFoundException if the profile does not exist
          */
@@ -284,13 +311,13 @@ public class ProfessorProfileService {
         /**
          * Creates the initial professor profile together with the uploaded CV.
          *
-         * @param email authenticated professor email
+         * @param email   authenticated professor email
          * @param request request DTO with profile data
-         * @param file uploaded CV file
+         * @param file    uploaded CV file
          * @return created professor profile response
-         * @throws ResourceNotFoundException if the user does not exist
+         * @throws ResourceNotFoundException   if the user does not exist
          * @throws ForbiddenOperationException if the profile already exists
-         * @throws InvalidFileException if no CV file is provided
+         * @throws InvalidFileException        if no CV file is provided
          */
         @Transactional
         public ProfessorProfileResponse createProfileWithCv(
