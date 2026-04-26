@@ -9,6 +9,7 @@ import {
     getMySupervisedTheses,
     createSupervisedThesis,
     deleteSupervisedThesis,
+    updateSupervisedThesis,
 } from "@/lib/theses";
 import type { SupervisedThesis } from "@/types/professor";
 
@@ -52,6 +53,7 @@ export default function ProfessorProfileSetupPage() {
         results: "",
         ongoing: false,
     });
+    const [editingThesisId, setEditingThesisId] = useState<number | null>(null);
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -353,30 +355,10 @@ export default function ProfessorProfileSetupPage() {
         }
     }
 
-    function addThesisLocally() {
-        if (
-            !thesisForm.doctoralStudentName.trim() ||
-            !thesisForm.thesisTitle.trim() ||
-            !thesisForm.researchDescription.trim()
-        ) {
-            setError("Completa doctorando, título y descripción de la tesis.");
-            return;
-        }
-
-        const temporaryThesis: SupervisedThesis = {
-            id: Date.now(),
-            doctoralStudentName: thesisForm.doctoralStudentName,
-            thesisTitle: thesisForm.thesisTitle,
-            defenseYear: thesisForm.defenseYear ? Number(thesisForm.defenseYear) : null,
-            researchDescription: thesisForm.researchDescription,
-            industrialMention: thesisForm.industrialMention,
-            internationalMention: thesisForm.internationalMention,
-            results: thesisForm.results || null,
-            ongoing: thesisForm.ongoing,
-        };
-
-        setTheses((prev) => [temporaryThesis, ...prev]);
-
+    /**
+ * Resets the supervised thesis form and exits edit mode.
+ */
+    function resetThesisForm() {
         setThesisForm({
             doctoralStudentName: "",
             thesisTitle: "",
@@ -387,6 +369,86 @@ export default function ProfessorProfileSetupPage() {
             results: "",
             ongoing: false,
         });
+
+        setEditingThesisId(null);
+    }
+
+    /**
+     * Loads a supervised thesis into the form so it can be edited.
+     *
+     * @param thesis supervised thesis selected for edition
+     */
+    function handleEditThesis(thesis: SupervisedThesis) {
+        setEditingThesisId(thesis.id);
+
+        setThesisForm({
+            doctoralStudentName: thesis.doctoralStudentName,
+            thesisTitle: thesis.thesisTitle,
+            defenseYear: thesis.defenseYear != null ? String(thesis.defenseYear) : "",
+            researchDescription: thesis.researchDescription,
+            industrialMention: thesis.industrialMention,
+            internationalMention: thesis.internationalMention,
+            results: thesis.results ?? "",
+            ongoing: thesis.ongoing,
+        });
+    }
+
+    /**
+ * Adds a supervised thesis locally during profile setup or updates an existing thesis.
+ *
+ * <p>When the profile is being created, theses are stored locally until the
+ * professor profile has been saved. In edit mode, existing theses are updated
+ * directly through the backend.</p>
+ */
+    async function saveThesisFromSetup() {
+        if (
+            !thesisForm.doctoralStudentName.trim() ||
+            !thesisForm.thesisTitle.trim() ||
+            !thesisForm.researchDescription.trim()
+        ) {
+            setError("Completa doctorando, título y descripción de la tesis.");
+            return;
+        }
+
+        const payload = {
+            doctoralStudentName: thesisForm.doctoralStudentName,
+            thesisTitle: thesisForm.thesisTitle,
+            defenseYear: thesisForm.defenseYear ? Number(thesisForm.defenseYear) : null,
+            researchDescription: thesisForm.researchDescription,
+            industrialMention: thesisForm.industrialMention,
+            internationalMention: thesisForm.internationalMention,
+            results: thesisForm.results || null,
+            ongoing: thesisForm.ongoing,
+        };
+
+        if (editingThesisId !== null) {
+            if (isEditMode) {
+                const updated = await updateSupervisedThesis(editingThesisId, payload);
+
+                setTheses((prev) =>
+                    prev.map((thesis) => thesis.id === editingThesisId ? updated : thesis)
+                );
+            } else {
+                setTheses((prev) =>
+                    prev.map((thesis) =>
+                        thesis.id === editingThesisId
+                            ? { ...thesis, ...payload, id: editingThesisId }
+                            : thesis
+                    )
+                );
+            }
+
+            resetThesisForm();
+            return;
+        }
+
+        const temporaryThesis: SupervisedThesis = {
+            id: Date.now(),
+            ...payload,
+        };
+
+        setTheses((prev) => [temporaryThesis, ...prev]);
+        resetThesisForm();
     }
 
     async function removeThesis(thesis: SupervisedThesis) {
@@ -769,13 +831,25 @@ export default function ProfessorProfileSetupPage() {
                                 </label>
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={addThesisLocally}
-                                className="rounded-xl border px-4 py-2 font-medium"
-                            >
-                                Añadir tesis
-                            </button>
+                            <div className="flex flex-wrap gap-3">
+                                <button
+                                    type="button"
+                                    onClick={saveThesisFromSetup}
+                                    className="rounded-xl border px-4 py-2 font-medium"
+                                >
+                                    {editingThesisId !== null ? "Guardar cambios" : "Añadir tesis"}
+                                </button>
+
+                                {editingThesisId !== null && (
+                                    <button
+                                        type="button"
+                                        onClick={resetThesisForm}
+                                        className="rounded-xl border px-4 py-2 font-medium"
+                                    >
+                                        Cancelar edición
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         <div className="mt-5 space-y-3">
@@ -796,13 +870,23 @@ export default function ProfessorProfileSetupPage() {
                                             {thesis.ongoing ? "En curso" : "Finalizada"}
                                         </p>
 
-                                        <button
-                                            type="button"
-                                            onClick={() => removeThesis(thesis)}
-                                            className="mt-2 rounded-xl border border-red-300 px-3 py-1 text-sm text-red-700"
-                                        >
-                                            Eliminar
-                                        </button>
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleEditThesis(thesis)}
+                                                className="rounded-xl border px-3 py-1 text-sm"
+                                            >
+                                                Editar
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => removeThesis(thesis)}
+                                                className="rounded-xl border border-red-300 px-3 py-1 text-sm text-red-700"
+                                            >
+                                                Eliminar
+                                            </button>
+                                        </div>
                                     </div>
                                 ))
                             )}

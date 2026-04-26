@@ -8,6 +8,7 @@ import {
     getMySupervisedTheses,
     createSupervisedThesis,
     deleteSupervisedThesis,
+    updateSupervisedThesis,
 } from "@/lib/theses";
 import type { SupervisedThesis } from "@/types/professor";
 
@@ -29,6 +30,7 @@ export default function ProfessorProfilePage() {
         results: "",
         ongoing: false,
     });
+    const [editingThesisId, setEditingThesisId] = useState<number | null>(null);
 
     useEffect(() => {
         async function loadProfile() {
@@ -79,12 +81,17 @@ export default function ProfessorProfilePage() {
         loadProfile();
     }, [router]);
 
-    async function handleCreateThesis(e: React.FormEvent) {
+    /**
+ * Creates a new supervised thesis or updates an existing one depending on edit mode.
+ *
+ * @param e form submission event
+ */
+    async function handleSaveThesis(e: React.FormEvent) {
         e.preventDefault();
         setError("");
 
         try {
-            const created = await createSupervisedThesis({
+            const payload = {
                 doctoralStudentName: thesisForm.doctoralStudentName,
                 thesisTitle: thesisForm.thesisTitle,
                 defenseYear: thesisForm.defenseYear ? Number(thesisForm.defenseYear) : null,
@@ -93,23 +100,61 @@ export default function ProfessorProfilePage() {
                 internationalMention: thesisForm.internationalMention,
                 results: thesisForm.results || null,
                 ongoing: thesisForm.ongoing,
-            });
+            };
 
-            setTheses((prev) => [created, ...prev]);
+            if (editingThesisId !== null) {
+                const updated = await updateSupervisedThesis(editingThesisId, payload);
 
-            setThesisForm({
-                doctoralStudentName: "",
-                thesisTitle: "",
-                defenseYear: "",
-                researchDescription: "",
-                industrialMention: false,
-                internationalMention: false,
-                results: "",
-                ongoing: false,
-            });
+                setTheses((prev) =>
+                    prev.map((thesis) => thesis.id === editingThesisId ? updated : thesis)
+                );
+            } else {
+                const created = await createSupervisedThesis(payload);
+                setTheses((prev) => [created, ...prev]);
+            }
+
+            resetThesisForm();
         } catch (err) {
-            setError(err instanceof Error ? err.message : "No se ha podido registrar la tesis");
+            setError(err instanceof Error ? err.message : "No se ha podido guardar la tesis");
         }
+    }
+
+    /**
+ * Resets the supervised thesis form and exits edit mode.
+ */
+    function resetThesisForm() {
+        setThesisForm({
+            doctoralStudentName: "",
+            thesisTitle: "",
+            defenseYear: "",
+            researchDescription: "",
+            industrialMention: false,
+            internationalMention: false,
+            results: "",
+            ongoing: false,
+        });
+
+        setEditingThesisId(null);
+    }
+
+    /**
+     * Loads a supervised thesis into the form so it can be edited.
+     *
+     * @param thesis supervised thesis selected for edition
+     */
+    function handleEditThesis(thesis: SupervisedThesis) {
+        setEditingThesisId(thesis.id);
+
+        setThesisForm({
+            doctoralStudentName: thesis.doctoralStudentName,
+            thesisTitle: thesis.thesisTitle,
+            defenseYear: thesis.defenseYear != null ? String(thesis.defenseYear) : "",
+            researchDescription: thesis.researchDescription,
+            industrialMention: thesis.industrialMention,
+            internationalMention: thesis.internationalMention,
+            results: thesis.results ?? "",
+            ongoing: thesis.ongoing,
+        });
     }
 
     async function handleDeleteThesis(id: number) {
@@ -211,7 +256,7 @@ export default function ProfessorProfilePage() {
                             Tesis dirigidas previamente o en curso
                         </h2>
 
-                        <form onSubmit={handleCreateThesis} className="mb-6 space-y-4">
+                        <form onSubmit={handleSaveThesis} className="mb-6 space-y-4">
                             <input
                                 className="w-full rounded-xl border px-4 py-2"
                                 placeholder="Nombre del doctorando"
@@ -302,12 +347,24 @@ export default function ProfessorProfilePage() {
                                 </label>
                             </div>
 
-                            <button
-                                type="submit"
-                                className="rounded-xl bg-black px-5 py-3 font-medium text-white"
-                            >
-                                Añadir tesis
-                            </button>
+                            <div className="flex flex-wrap gap-3">
+                                <button
+                                    type="submit"
+                                    className="rounded-xl bg-black px-5 py-3 font-medium text-white"
+                                >
+                                    {editingThesisId !== null ? "Guardar cambios" : "Añadir tesis"}
+                                </button>
+
+                                {editingThesisId !== null && (
+                                    <button
+                                        type="button"
+                                        onClick={resetThesisForm}
+                                        className="rounded-xl border px-5 py-3 font-medium"
+                                    >
+                                        Cancelar edición
+                                    </button>
+                                )}
+                            </div>
                         </form>
 
                         <div className="space-y-4">
@@ -333,12 +390,21 @@ export default function ProfessorProfilePage() {
                                         </p>
                                         <p><strong>Estado:</strong> {thesis.ongoing ? "En curso" : "Finalizada"}</p>
 
-                                        <button
-                                            onClick={() => handleDeleteThesis(thesis.id)}
-                                            className="mt-3 rounded-xl border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
-                                        >
-                                            Eliminar
-                                        </button>
+                                        <div className="mt-3 flex flex-wrap gap-3">
+                                            <button
+                                                onClick={() => handleEditThesis(thesis)}
+                                                className="rounded-xl border px-4 py-2 text-sm font-medium hover:bg-gray-50"
+                                            >
+                                                Editar
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleDeleteThesis(thesis.id)}
+                                                className="rounded-xl border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+                                            >
+                                                Eliminar
+                                            </button>
+                                        </div>
                                     </div>
                                 ))
                             )}
