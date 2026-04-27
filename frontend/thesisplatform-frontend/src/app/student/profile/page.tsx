@@ -5,6 +5,19 @@ import { useRouter } from "next/navigation";
 import { getUser, isAuthenticated, logout, clearSession } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+
+const FILE_BASE_URL = API_BASE_URL.replace("/api", "");
+
+function buildCvUrl(cvUrl: string) {
+    if (cvUrl.startsWith("http")) {
+        return cvUrl;
+    }
+
+    return `${FILE_BASE_URL}/files/${cvUrl}`;
+}
+
 export default function StudentProfilePage() {
     const router = useRouter();
     const [profile, setProfile] = useState<any>(null);
@@ -101,7 +114,7 @@ export default function StudentProfilePage() {
                             {profile.cvUrl ? (
                                 <div className="mt-2 flex gap-4">
                                     <a
-                                        href={profile.cvUrl}
+                                        href={buildCvUrl(profile.cvUrl)}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="text-blue-600 underline"
@@ -114,7 +127,10 @@ export default function StudentProfilePage() {
                             )}
                         </div>
 
-                        <p><strong>Tipo de dedicación:</strong> {profile.dedicationType}</p>
+                        <p>
+                            <strong>Tipo de dedicación:</strong>{" "}
+                            {profile.dedicationType === "FULL_TIME" ? "Tiempo completo" : "Tiempo parcial"}
+                        </p>
                         <p><strong>Financiación:</strong> {profile.hasFunding ? "Sí" : "No"}</p>
                         <p><strong>Tipo de financiación:</strong> {profile.fundingType || "-"}</p>
                         <p><strong>Duración financiación:</strong> {profile.fundingDurationMonths ?? "-"}</p>

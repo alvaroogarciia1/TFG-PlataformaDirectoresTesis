@@ -5,6 +5,19 @@ import { useParams, useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { clearSession, getUser, isAuthenticated, logout } from "@/lib/auth";
 
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+
+const FILE_BASE_URL = API_BASE_URL.replace("/api", "");
+
+function buildCvUrl(cvUrl: string) {
+    if (cvUrl.startsWith("http")) {
+        return cvUrl;
+    }
+
+    return `${FILE_BASE_URL}/files/${cvUrl}`;
+}
+
 type UserRole = "STUDENT" | "PROFESSOR" | "ADMIN";
 
 type StudentProfile = {
@@ -221,7 +234,7 @@ export default function AdminUserDetailPage() {
                                 {userDetail.studentProfile.cvUrl ? (
                                     <div className="mt-2 flex gap-4">
                                         <a
-                                            href={userDetail.studentProfile.cvUrl}
+                                            href={buildCvUrl(userDetail.studentProfile.cvUrl)}
                                             target="_blank"
                                             rel="noreferrer"
                                             className="text-blue-600 underline"
@@ -233,7 +246,7 @@ export default function AdminUserDetailPage() {
                                             type="button"
                                             onClick={() =>
                                                 handleDownloadCv(
-                                                    userDetail.studentProfile!.cvUrl,
+                                                    buildCvUrl(userDetail.studentProfile!.cvUrl),
                                                     "cv_estudiante.pdf"
                                                 )
                                             }
@@ -349,7 +362,7 @@ export default function AdminUserDetailPage() {
                                 {userDetail.professorProfile.cvUrl ? (
                                     <div className="mt-2 flex gap-4">
                                         <a
-                                            href={userDetail.professorProfile.cvUrl}
+                                            href={buildCvUrl(userDetail.professorProfile.cvUrl)}
                                             target="_blank"
                                             rel="noreferrer"
                                             className="text-blue-600 underline"
@@ -361,7 +374,7 @@ export default function AdminUserDetailPage() {
                                             type="button"
                                             onClick={() =>
                                                 handleDownloadCv(
-                                                    userDetail.professorProfile!.cvUrl,
+                                                    buildCvUrl(userDetail.professorProfile!.cvUrl),
                                                     "cv_profesor.pdf"
                                                 )
                                             }

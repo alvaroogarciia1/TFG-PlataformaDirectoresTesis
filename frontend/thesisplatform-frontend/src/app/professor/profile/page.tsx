@@ -12,6 +12,19 @@ import {
 } from "@/lib/theses";
 import type { SupervisedThesis } from "@/types/professor";
 
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+
+const FILE_BASE_URL = API_BASE_URL.replace("/api", "");
+
+function buildCvUrl(cvUrl: string) {
+    if (cvUrl.startsWith("http")) {
+        return cvUrl;
+    }
+
+    return `${FILE_BASE_URL}/files/${cvUrl}`;
+}
+
 export default function ProfessorProfilePage() {
     const router = useRouter();
 
@@ -213,7 +226,7 @@ export default function ProfessorProfilePage() {
                             {profile.cvUrl ? (
                                 <div className="mt-2 flex gap-4">
                                     <a
-                                        href={profile.cvUrl}
+                                        href={buildCvUrl(profile.cvUrl)}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="text-blue-600 underline"

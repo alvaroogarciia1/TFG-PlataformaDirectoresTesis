@@ -11,6 +11,19 @@ import { MatchResult } from "@/types/matching";
 import { ProfessorProfile } from "@/types/professor";
 import { DoctoralProgram, ResearchLine } from "@/types/catalog";
 
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+
+const FILE_BASE_URL = API_BASE_URL.replace("/api", "");
+
+function buildCvUrl(cvUrl: string) {
+    if (cvUrl.startsWith("http")) {
+        return cvUrl;
+    }
+
+    return `${FILE_BASE_URL}/files/${cvUrl}`;
+}
+
 type ViewMode = "manual" | "automatic";
 
 export default function StudentSearchPage() {
@@ -238,6 +251,8 @@ export default function StudentSearchPage() {
         setSelectedProfessor(professor);
     }
 
+    const isRequestValid =
+        requestSubject.trim() !== "" && requestMessage.trim() !== "";
     return (
         <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-gray-900">
             <div className="mb-8 flex items-start gap-4">
@@ -607,7 +622,7 @@ export default function StudentSearchPage() {
                             <p><b>CV:</b>{" "}
                                 {selectedProfessor.cvUrl ? (
                                     <a
-                                        href={selectedProfessor.cvUrl}
+                                        href={buildCvUrl(selectedProfessor.cvUrl)}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="underline"
@@ -690,8 +705,8 @@ export default function StudentSearchPage() {
 
                             <button
                                 onClick={handleSendRequest}
-                                disabled={sending}
-                                className="rounded-2xl border border-white bg-white px-6 py-3 text-lg font-medium text-black transition hover:bg-gray-200 disabled:opacity-50"
+                                disabled={sending || !isRequestValid}
+                                className="rounded-2xl border border-white bg-white px-6 py-3 text-lg font-medium text-black transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {sending ? "Enviando..." : "Enviar solicitud"}
                             </button>

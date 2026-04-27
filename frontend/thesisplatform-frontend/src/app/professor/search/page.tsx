@@ -11,6 +11,19 @@ import { MatchResult } from "@/types/matching";
 import { StudentProfile } from "@/types/student";
 import { DoctoralProgram, ResearchLine } from "@/types/catalog";
 
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+
+const FILE_BASE_URL = API_BASE_URL.replace("/api", "");
+
+function buildCvUrl(cvUrl: string) {
+    if (cvUrl.startsWith("http")) {
+        return cvUrl;
+    }
+
+    return `${FILE_BASE_URL}/files/${cvUrl}`;
+}
+
 type ViewMode = "manual" | "automatic";
 
 export default function ProfessorSearchPage() {
@@ -262,6 +275,9 @@ export default function ProfessorSearchPage() {
         setSelectedStudent(student);
     }
 
+    const isRequestValid =
+        requestSubject.trim() !== "" && requestMessage.trim() !== "";
+
     return (
         <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-gray-900">
             <div className="mb-8 flex items-start gap-4">
@@ -434,8 +450,8 @@ export default function ProfessorSearchPage() {
                                     className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-[16px] text-gray-900"
                                 >
                                     <option value="any">Cualquiera</option>
-                                    <option value="FULL_TIME">FULL_TIME</option>
-                                    <option value="PART_TIME">PART_TIME</option>
+                                    <option value="FULL_TIME">Tiempo completo</option>
+                                    <option value="PART_TIME">Tiempo parcial</option>
                                 </select>
                             )}
 
@@ -643,14 +659,19 @@ export default function ProfessorSearchPage() {
                             <p><b>Tipo de financiación:</b> {selectedStudent.fundingType || "-"}</p>
                             <p><b>Duración financiación:</b> {selectedStudent.fundingDurationMonths ?? "-"}</p>
                             <p><b>Traslado a Madrid:</b> {selectedStudent.willingToRelocateToMadrid ? "Sí" : "No"}</p>
-                            <p><b>Dedicación:</b> {selectedStudent.dedicationType}</p>
+                            <p>
+                                <b>Dedicación:</b>{" "}
+                                {selectedStudent.dedicationType === "FULL_TIME"
+                                    ? "Tiempo completo"
+                                    : "Tiempo parcial"}
+                            </p>
                             <p><b>Programas de doctorado:</b> {selectedStudent.doctoralPrograms.join(", ") || "-"}</p>
                             <p><b>Líneas de investigación:</b> {selectedStudent.researchLines.join(", ") || "-"}</p>
                             <p><b>Información adicional:</b> {selectedStudent.additionalInformation || "-"}</p>
                             <p><b>CV:</b>{" "}
                                 {selectedStudent.cvUrl ? (
                                     <a
-                                        href={selectedStudent.cvUrl}
+                                        href={buildCvUrl(selectedStudent.cvUrl)}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="underline"
@@ -733,8 +754,8 @@ export default function ProfessorSearchPage() {
 
                             <button
                                 onClick={handleSendRequest}
-                                disabled={sending}
-                                className="rounded-2xl border border-white bg-white px-6 py-3 text-lg font-medium text-black transition hover:bg-gray-200 disabled:opacity-50"
+                                disabled={sending || !isRequestValid}
+                                className="rounded-2xl border border-white bg-white px-6 py-3 text-lg font-medium text-black transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {sending ? "Enviando..." : "Enviar solicitud"}
                             </button>
