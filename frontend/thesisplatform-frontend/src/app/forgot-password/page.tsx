@@ -5,6 +5,12 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 
+/**
+ * Password recovery request page.
+ *
+ * Allows users to request a password reset email by providing the email address
+ * associated with their account.
+ */
 export default function ForgotPasswordPage() {
     const router = useRouter();
 
@@ -15,6 +21,11 @@ export default function ForgotPasswordPage() {
 
     const isFormFilled = email.trim() !== "";
 
+    /**
+     * Validates the email field and sends a password reset request to the backend.
+     *
+     * @param e - Form submission event.
+     */
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
 

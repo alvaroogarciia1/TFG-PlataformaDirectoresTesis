@@ -1,8 +1,8 @@
 /**
  * Type representing the public data of a professor profile.
  *
- * <p>This structure is used in professor profile views, manual search
- * results and other frontend screens that display professor information.</p>
+ * This structure is used in professor profile views, manual search
+ * results and other frontend screens that display professor information.
  */
 export interface ProfessorProfile {
     /**
@@ -46,7 +46,7 @@ export interface ProfessorProfile {
     availableToSupervise: boolean;
 
     /**
-     * Maximum number of PhD students accepted by the professor.
+     * Maximum number of PhD students the professor is willing to supervise simultaneously.
      */
     maxPhdStudents: number | null;
 
@@ -56,7 +56,7 @@ export interface ProfessorProfile {
     additionalInformation: string | null;
 
     /**
-     * Public URL or reference to the professor CV.
+     * URL pointing to the stored CV file of the professor.
      */
     cvUrl: string;
 
@@ -71,16 +71,18 @@ export interface ProfessorProfile {
     researchLines: string[];
 
     /**
- * Supervised theses previously directed or currently in progress.
- */
+     * List of supervised theses associated with the professor.
+     *
+     * This field may be omitted depending on the endpoint or context.
+     */
     supervisedTheses?: SupervisedThesis[];
 }
 
 /**
  * Type representing a supervised thesis associated with a professor profile.
  *
- * <p>This structure is used to display thesis records previously supervised
- * or currently in progress by a professor.</p>
+ * This structure is used to display thesis records previously supervised
+ * or currently in progress by a professor.
  */
 export interface SupervisedThesis {
     /**
@@ -132,8 +134,8 @@ export interface SupervisedThesis {
 /**
  * Type representing the data required to create a supervised thesis record.
  *
- * <p>This structure is used when a professor registers a new thesis
- * in the system.</p>
+ * This structure is used when a professor registers a new thesis
+ * in the system.
  */
 export interface SupervisedThesisRequest {
     /**

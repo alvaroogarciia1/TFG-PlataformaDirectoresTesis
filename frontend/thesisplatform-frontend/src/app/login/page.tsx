@@ -8,6 +8,13 @@ import { saveSession } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { AuthResponse } from "@/types/auth";
 
+/**
+ * Login page.
+ *
+ * Allows registered users to authenticate with their email and password.
+ * After a successful login, the user session is stored locally and the user is
+ * redirected to the dashboard that corresponds to their role.
+ */
 export default function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -25,6 +32,12 @@ export default function LoginPage() {
         email.trim() !== "" &&
         password.trim() !== "";
 
+    /**
+     * Validates the login form, sends the credentials to the backend and stores
+     * the authenticated session if the login request succeeds.
+     *
+     * @param e - Form submission event.
+     */
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
 

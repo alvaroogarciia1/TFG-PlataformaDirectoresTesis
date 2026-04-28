@@ -17,6 +17,12 @@ const API_BASE_URL =
 
 const FILE_BASE_URL = API_BASE_URL.replace("/api", "");
 
+/**
+ * Builds the public URL used to access a CV file.
+ *
+ * @param cvUrl - Absolute URL or relative file path returned by the backend.
+ * @returns Full URL that can be opened from the browser.
+ */
 function buildCvUrl(cvUrl: string) {
     if (cvUrl.startsWith("http")) {
         return cvUrl;
@@ -25,6 +31,12 @@ function buildCvUrl(cvUrl: string) {
     return `${FILE_BASE_URL}/files/${cvUrl}`;
 }
 
+/**
+ * Professor profile page.
+ *
+ * Displays the current professor academic profile and allows the professor to
+ * manage supervised theses without leaving the profile section.
+ */
 export default function ProfessorProfilePage() {
     const router = useRouter();
 
@@ -45,6 +57,12 @@ export default function ProfessorProfilePage() {
     });
     const [editingThesisId, setEditingThesisId] = useState<number | null>(null);
 
+    /**
+     * Loads the professor profile and its supervised theses.
+     *
+     * The page is protected so only authenticated professor users can access it.
+     * Missing profiles are redirected to the setup page.
+     */
     useEffect(() => {
         async function loadProfile() {
             if (!isAuthenticated()) {
@@ -95,10 +113,11 @@ export default function ProfessorProfilePage() {
     }, [router]);
 
     /**
- * Creates a new supervised thesis or updates an existing one depending on edit mode.
- *
- * @param e form submission event
- */
+     * Creates a new supervised thesis or updates an existing one depending on
+     * whether the form is currently in edit mode.
+     *
+     * @param e - Form submission event.
+     */
     async function handleSaveThesis(e: React.FormEvent) {
         e.preventDefault();
         setError("");
@@ -133,8 +152,8 @@ export default function ProfessorProfilePage() {
     }
 
     /**
- * Resets the supervised thesis form and exits edit mode.
- */
+     * Resets the supervised thesis form and exits edit mode.
+     */
     function resetThesisForm() {
         setThesisForm({
             doctoralStudentName: "",
@@ -153,7 +172,7 @@ export default function ProfessorProfilePage() {
     /**
      * Loads a supervised thesis into the form so it can be edited.
      *
-     * @param thesis supervised thesis selected for edition
+     * @param thesis - Supervised thesis selected for edition.
      */
     function handleEditThesis(thesis: SupervisedThesis) {
         setEditingThesisId(thesis.id);
@@ -170,6 +189,11 @@ export default function ProfessorProfilePage() {
         });
     }
 
+    /**
+     * Deletes a supervised thesis and removes it from the current UI state.
+     *
+     * @param id - Identifier of the thesis to delete.
+     */
     async function handleDeleteThesis(id: number) {
         setError("");
 

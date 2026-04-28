@@ -3,6 +3,11 @@ import { ProfessorProfile } from "@/types/professor";
 import { StudentProfile } from "@/types/student";
 
 /**
+ * This module centralizes all search operations for professors and students,
+ * including both simple name-based queries and advanced filtered searches.
+ */
+
+/**
  * Payload used for advanced professor search.
  *
  * <p>All fields are optional and correspond to the filters supported
@@ -71,20 +76,24 @@ export interface StudentAdvancedSearchRequest {
 /**
  * Searches professors by name using the public search endpoint.
  *
- * @param name full-name fragment to search
- * @returns list of professor profiles matching the query
+ * @param name - Full-name fragment to search.
+ * @returns List of professor profiles matching the query.
  */
-export async function searchProfessorsByName(name: string): Promise<ProfessorProfile[]> {
+export async function searchProfessorsByName(
+    name: string
+): Promise<ProfessorProfile[]> {
     return apiFetch<ProfessorProfile[]>(
-        `/professors/search?name=${encodeURIComponent(name)}`
+        `/professors/search?name=${encodeURIComponent(name)}`,
+        {},
+        false // public endpoint (no auth required)
     );
 }
 
 /**
  * Searches professors using advanced structured filters.
  *
- * @param body advanced search payload
- * @returns list of professor profiles matching the provided filters
+ * @param body - Advanced search payload.
+ * @returns List of professor profiles matching the provided filters.
  */
 export async function searchProfessorsAdvanced(
     body: ProfessorAdvancedSearchRequest
@@ -98,20 +107,24 @@ export async function searchProfessorsAdvanced(
 /**
  * Searches students by full name using the search endpoint.
  *
- * @param name full-name fragment to search
- * @returns list of student profiles matching the query
+ * @param name - Full-name fragment to search.
+ * @returns List of student profiles matching the query.
  */
-export async function searchStudentsByName(name: string): Promise<StudentProfile[]> {
+export async function searchStudentsByName(
+    name: string
+): Promise<StudentProfile[]> {
     return apiFetch<StudentProfile[]>(
-        `/students/search?name=${encodeURIComponent(name)}`
+        `/students/search?name=${encodeURIComponent(name)}`,
+        {},
+        false // public endpoint (no auth required)
     );
 }
 
 /**
  * Searches students using advanced structured filters.
  *
- * @param body advanced search payload
- * @returns list of student profiles matching the provided filters
+ * @param body - Advanced search payload.
+ * @returns List of student profiles matching the provided filters.
  */
 export async function searchStudentsAdvanced(
     body: StudentAdvancedSearchRequest

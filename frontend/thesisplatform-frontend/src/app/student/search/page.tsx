@@ -16,6 +16,12 @@ const API_BASE_URL =
 
 const FILE_BASE_URL = API_BASE_URL.replace("/api", "");
 
+/**
+ * Builds the public URL used to access a CV file.
+ *
+ * @param cvUrl - Absolute URL or relative file path returned by the backend.
+ * @returns Full URL that can be opened from the browser.
+ */
 function buildCvUrl(cvUrl: string) {
     if (cvUrl.startsWith("http")) {
         return cvUrl;
@@ -26,6 +32,13 @@ function buildCvUrl(cvUrl: string) {
 
 type ViewMode = "manual" | "automatic";
 
+/**
+ * Student search page.
+ *
+ * Allows students to search for professors manually using structured filters or
+ * automatically using the matching system. It also provides profile inspection,
+ * affinity detail display and formal thesis supervision request creation.
+ */
 export default function StudentSearchPage() {
     const router = useRouter();
 
@@ -61,6 +74,9 @@ export default function StudentSearchPage() {
     const [requestMessage, setRequestMessage] = useState("");
     const [sending, setSending] = useState(false);
 
+    /**
+     * Protects the page so only authenticated student users can access it.
+     */
     useEffect(() => {
         if (!isAuthenticated()) {
             router.replace("/login");
@@ -78,6 +94,10 @@ export default function StudentSearchPage() {
         }
     }, [router]);
 
+    /**
+     * Loads the catalog data and the initial list of professors used by manual
+     * search and profile resolution from automatic match results.
+     */
     useEffect(() => {
         async function loadInitialData() {
             try {
@@ -102,6 +122,9 @@ export default function StudentSearchPage() {
         loadInitialData();
     }, []);
 
+    /**
+     * Indicates whether any advanced manual filter is active.
+     */
     const manualHasFilters = useMemo(() => {
         return (
             (showResearchLineFilter && selectedResearchLineId !== "") ||
@@ -120,6 +143,9 @@ export default function StudentSearchPage() {
         availableToSupervise,
     ]);
 
+    /**
+     * Applies the free-text professor name filter over the current manual result set.
+     */
     const manualResults = useMemo(() => {
         const normalizedName = name.trim().toLowerCase();
 
@@ -132,6 +158,9 @@ export default function StudentSearchPage() {
         );
     }, [manualBaseResults, name]);
 
+    /**
+     * Runs the manual search using the selected structured filters.
+     */
     async function handleManualSearch() {
         setLoading(true);
         setError("");
@@ -167,6 +196,9 @@ export default function StudentSearchPage() {
         }
     }
 
+    /**
+     * Runs the automatic professor matching search for the current student.
+     */
     async function handleAutomaticSearch() {
         setLoading(true);
         setError("");
@@ -182,6 +214,12 @@ export default function StudentSearchPage() {
         }
     }
 
+    /**
+     * Opens the thesis supervision request modal for the selected professor.
+     *
+     * @param userId - User identifier of the professor.
+     * @param fullName - Full name of the professor.
+     */
     function openRequestModal(userId: number, fullName: string) {
         setRequestProfessorUserId(userId);
         setRequestProfessorName(fullName);
@@ -189,6 +227,9 @@ export default function StudentSearchPage() {
         setRequestMessage("");
     }
 
+    /**
+     * Sends a formal thesis supervision request to the selected professor.
+     */
     async function handleSendRequest() {
         if (!requestProfessorUserId || !requestSubject.trim() || !requestMessage.trim()) {
             return;
@@ -217,6 +258,9 @@ export default function StudentSearchPage() {
         }
     }
 
+    /**
+     * Clears all manual search filters and restores the initial professor list.
+     */
     function clearManualFilters() {
         setName("");
         setSelectedResearchLineId("");
@@ -230,6 +274,12 @@ export default function StudentSearchPage() {
         setManualBaseResults(allProfessors);
     }
 
+    /**
+     * Resolves a complete professor profile from an automatic match result and
+     * opens it in the profile modal.
+     *
+     * @param matchProfessor - Professor match returned by the automatic search.
+     */
     function openProfessorProfile(matchProfessor: MatchResult) {
         const professor =
             allProfessors.find((prof) => prof.userId === matchProfessor.userId) ||
@@ -250,9 +300,9 @@ export default function StudentSearchPage() {
 
         setSelectedProfessor(professor);
     }
-
     const isRequestValid =
         requestSubject.trim() !== "" && requestMessage.trim() !== "";
+
     return (
         <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-gray-900">
             <div className="mb-8 flex items-start gap-4">

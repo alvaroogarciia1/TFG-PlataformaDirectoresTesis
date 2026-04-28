@@ -1,9 +1,12 @@
 /**
  * Type representing the public data of a student profile.
  *
- * <p>This structure is used in student profile views, manual search
- * results and other frontend screens that display student information.</p>
+ * This structure is used in student profile views, manual search
+ * results and other frontend screens that display student information.
  */
+
+export type DedicationType = "FULL_TIME" | "PART_TIME";
+
 export interface StudentProfile {
     /**
      * Unique identifier of the student profile.
@@ -68,7 +71,7 @@ export interface StudentProfile {
     /**
      * Expected dedication type for doctoral studies.
      */
-    dedicationType: string;
+    dedicationType: DedicationType;
 
     /**
      * Additional information provided by the student.

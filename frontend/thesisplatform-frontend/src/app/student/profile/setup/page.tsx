@@ -30,6 +30,13 @@ type StudentProfileResponse = {
 const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
+/**
+ * Student profile creation and edition page.
+ *
+ * Allows student users to complete or update their academic profile, including
+ * doctoral programs of interest, research lines, thesis proposal information,
+ * funding details, dedication type and CV upload.
+ */
 export default function StudentProfileSetupPage() {
     const router = useRouter();
 
@@ -61,6 +68,13 @@ export default function StudentProfileSetupPage() {
     const [existingCvUrl, setExistingCvUrl] = useState("");
     const [isEditMode, setIsEditMode] = useState(false);
 
+    /**
+     * Initializes the page by validating the session, checking that the current
+     * user is a student and loading the required catalog data.
+     *
+     * If a student profile already exists, the form is populated and the page
+     * switches to edit mode. Otherwise, it remains in creation mode.
+     */
     useEffect(() => {
         async function init() {
             if (!isAuthenticated()) {
@@ -111,7 +125,6 @@ export default function StudentProfileSetupPage() {
 
                     setSelectedDoctoralPrograms(selectedProgramIds);
                 } catch {
-                    // si no existe perfil todavía, se queda en modo creación
                 }
             } catch (err) {
                 if (err instanceof Error) {
@@ -127,6 +140,9 @@ export default function StudentProfileSetupPage() {
         init();
     }, [router]);
 
+    /**
+     * Indicates whether all mandatory fields required to submit the profile are completed.
+     */
     const isFormFilled = useMemo(() => {
         const baseFieldsFilled =
             firstName.trim() !== "" &&
@@ -160,6 +176,11 @@ export default function StudentProfileSetupPage() {
         cvFile,
     ]);
 
+    /**
+     * Adds or removes a doctoral program from the selected programs list.
+     *
+     * @param id - Identifier of the doctoral program to toggle.
+     */
     function toggleId(id: number) {
         setSelectedDoctoralPrograms((prev) =>
             prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
@@ -170,10 +191,19 @@ export default function StudentProfileSetupPage() {
         }
     }
 
+    /**
+     * Normalizes a research keyword by trimming spaces and collapsing repeated whitespace.
+     *
+     * @param value - Raw keyword entered by the user.
+     * @returns Normalized keyword.
+     */
     function normalizeKeyword(value: string) {
         return value.trim().replace(/\s+/g, " ");
     }
 
+    /**
+     * Adds the current input value as a research keyword, avoiding duplicates.
+     */
     function addKeyword() {
         const value = normalizeKeyword(researchInput);
         if (!value) return;
@@ -193,12 +223,22 @@ export default function StudentProfileSetupPage() {
         }
     }
 
+    /**
+     * Removes a research keyword from the selected keyword list.
+     *
+     * @param keywordToRemove - Keyword that must be removed.
+     */
     function removeKeyword(keywordToRemove: string) {
         setResearchKeywords((prev) =>
             prev.filter((keyword) => keyword !== keywordToRemove)
         );
     }
 
+    /**
+     * Adds a keyword when the user presses Enter or comma.
+     *
+     * @param e - Keyboard event triggered in the research input.
+     */
     function handleKeywordKeyDown(e: KeyboardEvent<HTMLInputElement>) {
         if (e.key === "Enter" || e.key === ",") {
             e.preventDefault();
@@ -206,6 +246,13 @@ export default function StudentProfileSetupPage() {
         }
     }
 
+    /**
+     * Validates the selected CV file before submission.
+     *
+     * Only PDF files up to 5 MB are accepted.
+     *
+     * @param file - File selected by the user.
+     */
     function validateCv(file: File | null) {
         if (!file) {
             setCvFile(null);
@@ -235,6 +282,12 @@ export default function StudentProfileSetupPage() {
         setFieldErrors((prev) => ({ ...prev, cv: "" }));
     }
 
+    /**
+     * Uploads a student CV file to the backend.
+     *
+     * @param file - Valid PDF file to upload.
+     * @returns CV URL returned by the backend.
+     */
     async function uploadStudentCv(file: File) {
         const token = getToken();
         if (!token) {
@@ -270,6 +323,12 @@ export default function StudentProfileSetupPage() {
         return response.text();
     }
 
+    /**
+     * Creates the student profile together with the required CV file.
+     *
+     * The request is sent as multipart data because it includes both structured
+     * profile information and a PDF document.
+     */
     async function createProfileWithCv() {
         const token = getToken();
         if (!token) {
@@ -305,7 +364,6 @@ export default function StudentProfileSetupPage() {
                 { type: "application/json" }
             )
         );
-
         formData.append("file", cvFile);
 
         const response = await fetch(`${API_BASE_URL}/students/me/setup`, {
@@ -332,6 +390,9 @@ export default function StudentProfileSetupPage() {
         }
     }
 
+    /**
+     * Updates the student profile and uploads a new CV only if the user selected one.
+     */
     async function updateProfileAndOptionalCv() {
         const cvUrlToKeep = existingCvUrl || null;
 
@@ -361,6 +422,14 @@ export default function StudentProfileSetupPage() {
         }
     }
 
+    /**
+     * Validates the complete student profile form and persists the data.
+     *
+     * Depending on the current mode, it either creates a new profile with its CV
+     * or updates the existing profile and optionally replaces the CV.
+     *
+     * @param e - Form submission event.
+     */
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
 

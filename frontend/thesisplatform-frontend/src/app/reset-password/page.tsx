@@ -6,6 +6,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
+/**
+ * Password reset page.
+ *
+ * Allows users to define a new password using the reset token received through
+ * the password recovery email.
+ */
 export default function ResetPasswordPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -24,6 +30,11 @@ export default function ResetPasswordPage() {
         password.trim() !== "" &&
         confirmPassword.trim() !== "";
 
+    /**
+     * Validates the new password fields and sends the reset request to the backend.
+     *
+     * @param e - Form submission event.
+     */
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
 

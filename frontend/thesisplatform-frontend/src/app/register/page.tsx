@@ -8,6 +8,13 @@ import { saveSession } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { AuthResponse, RegisterResponse, UserRole } from "@/types/auth";
 
+/**
+ * User registration page.
+ *
+ * Allows a new student or professor to create an account. After registration,
+ * the user is automatically authenticated and redirected to the corresponding
+ * profile setup page according to their selected role.
+ */
 export default function RegisterPage() {
     const router = useRouter();
 
@@ -26,6 +33,12 @@ export default function RegisterPage() {
         password.trim() !== "" &&
         confirmPassword.trim() !== "";
 
+    /**
+     * Validates the registration form, creates the account in the backend and
+     * performs an automatic login to start the profile completion flow.
+     *
+     * @param e - Form submission event.
+     */
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
 

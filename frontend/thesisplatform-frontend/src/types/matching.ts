@@ -1,8 +1,8 @@
 /**
  * Type representing the result of an automatic matching process.
  *
- * <p>This structure is shared by both student-to-professor and
- * professor-to-student automatic affinity searches.</p>
+ * This structure is shared by both student-to-professor and
+ * professor-to-student automatic affinity searches.
  */
 export interface MatchResult {
   /**
@@ -26,7 +26,7 @@ export interface MatchResult {
   institution: string;
 
   /**
-   * Final total affinity score.
+   * Final affinity score expressed as a percentage (0–100).
    */
   totalScore: number;
 
@@ -41,17 +41,17 @@ export interface MatchResult {
   doctoralProgramScore: number;
 
   /**
-   * Partial score obtained from professor availability.
+   * Partial score related to professor availability (only applicable when matching professors).
    */
   availabilityScore: number;
 
   /**
-   * Number of coincident research lines between the compared profiles.
+   * Number of matching research lines between both profiles.
    */
   matchingResearchLines: number;
 
   /**
-   * Number of coincident doctoral programs between the compared profiles.
+   * Number of matching doctoral programs between both profiles.
    */
   matchingDoctoralPrograms: number;
 
@@ -66,7 +66,9 @@ export interface MatchResult {
   doctoralPrograms: string[];
 
   /**
-   * Human-readable explanation of how the match score was calculated.
+   * Human-readable explanation describing how the affinity score was calculated.
+   *
+   * This field is used to provide transparency to the user about the matching process.
    */
   matchExplanation: string;
 }

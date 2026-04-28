@@ -15,6 +15,12 @@ type RequestWithDirection = ThesisRequest & {
     direction: "sent" | "received";
 };
 
+/**
+ * Converts the internal request status into the label shown in the interface.
+ *
+ * @param status - Current status of the thesis request.
+ * @returns Readable status label.
+ */
 function formatStatus(status: ThesisRequest["status"]) {
     switch (status) {
         case "PENDING":
@@ -30,6 +36,13 @@ function formatStatus(status: ThesisRequest["status"]) {
     }
 }
 
+/**
+ * Professor requests page.
+ *
+ * Displays both sent and received thesis supervision requests for the professor.
+ * The page allows the professor to review request details and manage pending
+ * requests by accepting, rejecting or cancelling them depending on their direction.
+ */
 export default function ProfessorRequestsPage() {
     const router = useRouter();
 
@@ -38,6 +51,9 @@ export default function ProfessorRequestsPage() {
     const [loading, setLoading] = useState(true);
     const [selectedRequest, setSelectedRequest] = useState<RequestWithDirection | null>(null);
 
+    /**
+     * Loads sent and received requests in parallel and updates the page state.
+     */
     async function loadData() {
         setLoading(true);
         try {
@@ -55,10 +71,16 @@ export default function ProfessorRequestsPage() {
         }
     }
 
+    /**
+     * Loads the initial request data when the page is mounted.
+     */
     useEffect(() => {
         loadData();
     }, []);
 
+    /**
+     * Combines sent and received requests into a single chronologically ordered list.
+     */
     const allRequests = useMemo<RequestWithDirection[]>(() => {
         return [
             ...sent.map((req) => ({ ...req, direction: "sent" as const })),
@@ -69,18 +91,33 @@ export default function ProfessorRequestsPage() {
         );
     }, [sent, received]);
 
+    /**
+     * Accepts a pending received request and refreshes the table.
+     *
+     * @param id - Identifier of the request to accept.
+     */
     async function handleAccept(id: number) {
         await acceptRequest(id);
         await loadData();
         setSelectedRequest(null);
     }
 
+    /**
+     * Rejects a pending received request and refreshes the table.
+     *
+     * @param id - Identifier of the request to reject.
+     */
     async function handleReject(id: number) {
         await rejectRequest(id);
         await loadData();
         setSelectedRequest(null);
     }
 
+    /**
+     * Cancels a pending sent request and refreshes the table.
+     *
+     * @param id - Identifier of the request to cancel.
+     */
     async function handleCancel(id: number) {
         await cancelRequest(id);
         await loadData();

@@ -4,9 +4,18 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getUser, isAuthenticated, logout } from "@/lib/auth";
 
+/**
+ * Student dashboard page.
+ *
+ * Provides the main navigation area for student users, allowing access to
+ * profile management, thesis supervision requests and professor search features.
+ */
 export default function StudentDashboardPage() {
     const router = useRouter();
 
+    /**
+     * Ensures that only authenticated student users can access this dashboard.
+     */
     useEffect(() => {
         if (!isAuthenticated()) {
             router.replace("/login");

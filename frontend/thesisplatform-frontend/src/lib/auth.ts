@@ -13,10 +13,10 @@ const USER_KEY = "user";
 /**
  * Persists the current authenticated session in local storage.
  *
- * <p>This includes both the JWT token and the user information returned
- * by the backend after a successful login.</p>
+ * This includes both the JWT token and the user information returned
+ * by the backend after a successful login.
  *
- * @param auth authentication payload returned by the backend
+ * @param auth - Authentication payload returned by the backend.
  */
 export function saveSession(auth: AuthResponse) {
   localStorage.setItem(TOKEN_KEY, auth.token);
@@ -26,10 +26,9 @@ export function saveSession(auth: AuthResponse) {
 /**
  * Retrieves the persisted JWT token from local storage.
  *
- * <p>When executed in a server-side rendering context, the function
- * safely returns null.</p>
+ * When executed in a server-side rendering context, the function safely returns null.
  *
- * @returns stored authentication token or null
+ * @returns Stored authentication token or null.
  */
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -39,9 +38,9 @@ export function getToken(): string | null {
 /**
  * Retrieves the persisted authenticated user data from local storage.
  *
- * <p>If the stored value cannot be parsed correctly, null is returned.</p>
+ * If the stored value cannot be parsed correctly, null is returned.
  *
- * @returns authenticated user payload or null
+ * @returns Authenticated user payload or null.
  */
 export function getUser(): AuthResponse | null {
   if (typeof window === "undefined") return null;
@@ -65,10 +64,10 @@ export function clearSession() {
 }
 
 /**
- * Indicates whether the user is currently considered authenticated
- * in the frontend session.
+ * Indicates whether the user is currently considered authenticated in the
+ * frontend session.
  *
- * @returns true when a token exists in local storage
+ * @returns True when a token exists in local storage.
  */
 export function isAuthenticated(): boolean {
   return !!getToken();
@@ -77,7 +76,7 @@ export function isAuthenticated(): boolean {
 /**
  * Clears the current session and redirects the user to the landing page.
  *
- * <p>A success query parameter is included so the UI can show a logout message.</p>
+ * A success query parameter is included so the UI can show a logout message.
  */
 export function logout() {
   clearSession();

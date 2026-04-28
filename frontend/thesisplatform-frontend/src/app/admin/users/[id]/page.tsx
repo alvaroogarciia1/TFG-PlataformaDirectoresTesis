@@ -10,6 +10,12 @@ const API_BASE_URL =
 
 const FILE_BASE_URL = API_BASE_URL.replace("/api", "");
 
+/**
+ * Builds the public URL used to access a CV file.
+ *
+ * @param cvUrl - Absolute URL or relative file path returned by the backend.
+ * @returns Full URL that can be opened or downloaded from the browser.
+ */
 function buildCvUrl(cvUrl: string) {
     if (cvUrl.startsWith("http")) {
         return cvUrl;
@@ -73,12 +79,25 @@ type AdminUserDetail = {
     professorProfile: ProfessorProfile | null;
 };
 
+/**
+ * Converts an internal user role into the label displayed in the administration interface.
+ *
+ * @param role - Internal role assigned to the user.
+ * @returns Readable role name for the UI.
+ */
 function roleLabel(role: UserRole) {
     if (role === "STUDENT") return "Estudiante";
     if (role === "PROFESSOR") return "Profesor";
     return "Administrador";
 }
 
+/**
+ * Administration user detail page.
+ *
+ * Allows an administrator to inspect the complete information of a registered user,
+ * including account metadata, student profile information, professor profile
+ * information, associated research lines, doctoral programs, supervised theses and CV.
+ */
 export default function AdminUserDetailPage() {
     const params = useParams<{ id: string }>();
     const router = useRouter();
@@ -87,6 +106,11 @@ export default function AdminUserDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    /**
+     * Ensures that only authenticated administrators can access the detail page.
+     * If the current user is not allowed to view this area, the page redirects
+     * to the corresponding safe route.
+     */
     useEffect(() => {
         if (!isAuthenticated()) {
             router.replace("/login");
@@ -108,6 +132,12 @@ export default function AdminUserDetailPage() {
         loadUser();
     }, [router, params.id]);
 
+    /**
+     * Loads the detailed information of the selected user from the backend.
+     *
+     * If the session is no longer authorized, the local session is removed and
+     * the administrator is redirected to the login page.
+     */
     async function loadUser() {
         setLoading(true);
         setError("");
@@ -134,6 +164,12 @@ export default function AdminUserDetailPage() {
         }
     }
 
+    /**
+     * Downloads a CV file from its public URL and saves it using the provided filename.
+     *
+     * @param url - Public URL of the CV file.
+     * @param filename - Name used by the browser when downloading the file.
+     */
     async function handleDownloadCv(url: string, filename: string) {
         try {
             const response = await fetch(url);

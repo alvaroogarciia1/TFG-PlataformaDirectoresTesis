@@ -21,12 +21,26 @@ type AdminUserSearchRequest = {
     active: boolean | null;
 };
 
+/**
+ * Converts an internal user role into the label displayed in the administration interface.
+ *
+ * @param role - Internal role assigned to the user.
+ * @returns Readable role name for the UI.
+ */
 function roleLabel(role: UserRole) {
     if (role === "STUDENT") return "Estudiante";
     if (role === "PROFESSOR") return "Profesor";
     return "Administrador";
 }
 
+/**
+ * Administration dashboard page.
+ *
+ * Provides the administrator with a centralized view of registered users, including
+ * search and filtering options by text, role and account status. It also allows
+ * account activation, deactivation, deletion and access to the detailed profile of
+ * each user.
+ */
 export default function AdminDashboardPage() {
     const router = useRouter();
 
@@ -39,6 +53,10 @@ export default function AdminDashboardPage() {
     const [roleFilter, setRoleFilter] = useState<"" | UserRole>("");
     const [activeFilter, setActiveFilter] = useState<"" | "true" | "false">("");
 
+    /**
+     * Validates that the current session belongs to an administrator before
+     * loading the protected dashboard data.
+     */
     useEffect(() => {
         if (!isAuthenticated()) {
             router.replace("/login");
@@ -60,6 +78,13 @@ export default function AdminDashboardPage() {
         loadUsers();
     }, [router]);
 
+    /**
+     * Retrieves the list of users from the backend using the currently selected
+     * search filters.
+     *
+     * If the backend reports a forbidden access error, the local session is cleared
+     * and the user is redirected to the login page.
+     */
     async function loadUsers() {
         setLoading(true);
         setError("");
@@ -96,6 +121,11 @@ export default function AdminDashboardPage() {
         }
     }
 
+    /**
+     * Activates a user account after administrator confirmation.
+     *
+     * @param id - Identifier of the user account to activate.
+     */
     async function handleActivate(id: number) {
         const confirmed = window.confirm("¿Seguro que quieres activar esta cuenta?");
         if (!confirmed) return;
@@ -115,6 +145,11 @@ export default function AdminDashboardPage() {
         }
     }
 
+    /**
+     * Deactivates a user account after administrator confirmation.
+     *
+     * @param id - Identifier of the user account to deactivate.
+     */
     async function handleDeactivate(id: number) {
         const confirmed = window.confirm("¿Seguro que quieres desactivar esta cuenta?");
         if (!confirmed) return;
@@ -134,6 +169,11 @@ export default function AdminDashboardPage() {
         }
     }
 
+    /**
+     * Permanently deletes a user account after administrator confirmation.
+     *
+     * @param id - Identifier of the user account to delete.
+     */
     async function handleDelete(id: number) {
         const confirmed = window.confirm("¿Seguro que quieres eliminar esta cuenta definitivamente?");
         if (!confirmed) return;
@@ -153,6 +193,9 @@ export default function AdminDashboardPage() {
         }
     }
 
+    /**
+     * Computes the message displayed when the user table has no results.
+     */
     const emptyMessage = useMemo(() => {
         if (loading) return "";
         if (users.length === 0) return "No hay usuarios que coincidan con la búsqueda.";

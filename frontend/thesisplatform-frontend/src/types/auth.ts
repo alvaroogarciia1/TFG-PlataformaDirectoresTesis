@@ -41,8 +41,8 @@ export interface RegisterRequest {
 /**
  * Authentication response returned by the backend after a successful login.
  *
- * <p>It includes both the authenticated user data and the JWT token
- * required for protected API requests.</p>
+ * It includes both the authenticated user data and the JWT token
+ * required for protected API requests.
  */
 export interface AuthResponse {
   /**

@@ -10,6 +10,12 @@ const API_BASE_URL =
 
 const FILE_BASE_URL = API_BASE_URL.replace("/api", "");
 
+/**
+ * Builds the public URL used to access a CV file.
+ *
+ * @param cvUrl - Absolute URL or relative file path returned by the backend.
+ * @returns Full URL that can be opened from the browser.
+ */
 function buildCvUrl(cvUrl: string) {
     if (cvUrl.startsWith("http")) {
         return cvUrl;
@@ -18,12 +24,25 @@ function buildCvUrl(cvUrl: string) {
     return `${FILE_BASE_URL}/files/${cvUrl}`;
 }
 
+/**
+ * Student profile page.
+ *
+ * Displays the current student's academic profile, including personal data,
+ * thesis proposal information, funding details, doctoral programs, research
+ * lines and uploaded CV.
+ */
 export default function StudentProfilePage() {
     const router = useRouter();
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    /**
+     * Loads the student profile from the backend.
+     *
+     * The page is protected so only authenticated student users can access it.
+     * Missing profiles are redirected to the setup page.
+     */
     useEffect(() => {
         async function loadProfile() {
             if (!isAuthenticated()) {

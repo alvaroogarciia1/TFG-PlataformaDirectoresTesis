@@ -4,9 +4,18 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getUser, isAuthenticated, logout } from "@/lib/auth";
 
+/**
+ * Professor dashboard page.
+ *
+ * Provides the main navigation area for professor users, allowing access to
+ * profile management, thesis supervision requests and student search features.
+ */
 export default function ProfessorDashboardPage() {
     const router = useRouter();
 
+    /**
+     * Ensures that only authenticated professor users can access this dashboard.
+     */
     useEffect(() => {
         if (!isAuthenticated()) {
             router.replace("/login");

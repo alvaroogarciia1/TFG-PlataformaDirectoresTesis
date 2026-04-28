@@ -1,5 +1,10 @@
 /**
  * Union type representing the possible states of a thesis request.
+ * Possible states of a thesis request during its lifecycle:
+ * - PENDING: request has been sent and is awaiting response
+ * - ACCEPTED: request has been approved
+ * - REJECTED: request has been declined
+ * - CANCELLED: request has been withdrawn by the initiator
  */
 export type ThesisRequestStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED";
 
@@ -11,6 +16,9 @@ export type RequestInitiator = "STUDENT" | "PROFESSOR";
 /**
  * Type representing a thesis direction request exchanged between
  * a student and a professor.
+ *
+ * This structure models the formal communication process used in the platform
+ * to initiate, accept, reject or cancel thesis supervision proposals.
  */
 export interface ThesisRequest {
     /**
@@ -59,22 +67,24 @@ export interface ThesisRequest {
     message: string;
 
     /**
-     * Current request status.
+     * Current state of the request within its lifecycle.
      */
     status: ThesisRequestStatus;
 
     /**
-     * Role that originally created the request.
+     * Role of the user who initiated the request.
+     *
+     * Determines whether the request was created by a student or a professor.
      */
     initiator: RequestInitiator;
 
     /**
-     * Request creation timestamp in ISO string format.
+     * Timestamp indicating when the request was created (ISO 8601 format).
      */
     createdAt: string;
 
     /**
-     * Request last update timestamp in ISO string format.
+     * Timestamp indicating the last update of the request (ISO 8601 format).
      */
     updatedAt: string;
 }

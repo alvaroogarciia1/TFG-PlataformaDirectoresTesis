@@ -2,6 +2,11 @@ import { apiFetch } from "@/lib/api";
 import { ThesisRequest } from "@/types/requests";
 
 /**
+ * This module centralizes all thesis request operations between students and
+ * professors, including creation, retrieval and lifecycle management.
+ */
+
+/**
  * Payload used when a student sends a thesis request to a professor.
  */
 export interface CreateStudentToProfessorRequest {
@@ -44,11 +49,13 @@ export interface CreateProfessorToStudentRequest {
 /**
  * Creates a thesis request from a student to a professor.
  *
- * @param body request payload
- * @returns backend response of the created request
+ * @param body - Request payload.
+ * @returns Created thesis request returned by the backend.
  */
-export async function createRequest(body: CreateStudentToProfessorRequest) {
-    return apiFetch("/requests", {
+export async function createRequest(
+    body: CreateStudentToProfessorRequest
+): Promise<ThesisRequest> {
+    return apiFetch<ThesisRequest>("/requests", {
         method: "POST",
         body: JSON.stringify(body),
     });
@@ -57,11 +64,13 @@ export async function createRequest(body: CreateStudentToProfessorRequest) {
 /**
  * Creates a thesis request from a professor to a student.
  *
- * @param body request payload
- * @returns backend response of the created request
+ * @param body - Request payload.
+ * @returns Created thesis request returned by the backend.
  */
-export async function createRequestAsProfessor(body: CreateProfessorToStudentRequest) {
-    return apiFetch("/requests/professor", {
+export async function createRequestAsProfessor(
+    body: CreateProfessorToStudentRequest
+): Promise<ThesisRequest> {
+    return apiFetch<ThesisRequest>("/requests/professor", {
         method: "POST",
         body: JSON.stringify(body),
     });
@@ -70,29 +79,29 @@ export async function createRequestAsProfessor(body: CreateProfessorToStudentReq
 /**
  * Retrieves the thesis requests sent by the authenticated user.
  *
- * @returns list of sent thesis requests
+ * @returns List of sent thesis requests.
  */
 export async function getSentRequests(): Promise<ThesisRequest[]> {
-    return apiFetch("/requests/sent");
+    return apiFetch<ThesisRequest[]>("/requests/sent");
 }
 
 /**
  * Retrieves the thesis requests received by the authenticated user.
  *
- * @returns list of received thesis requests
+ * @returns List of received thesis requests.
  */
 export async function getReceivedRequests(): Promise<ThesisRequest[]> {
-    return apiFetch("/requests/received");
+    return apiFetch<ThesisRequest[]>("/requests/received");
 }
 
 /**
  * Accepts a thesis request.
  *
- * @param id identifier of the request to accept
- * @returns backend response with updated request state
+ * @param id - Identifier of the request to accept.
+ * @returns Updated thesis request returned by the backend.
  */
-export async function acceptRequest(id: number) {
-    return apiFetch(`/requests/${id}/accept`, {
+export async function acceptRequest(id: number): Promise<ThesisRequest> {
+    return apiFetch<ThesisRequest>(`/requests/${id}/accept`, {
         method: "PATCH",
     });
 }
@@ -100,11 +109,11 @@ export async function acceptRequest(id: number) {
 /**
  * Rejects a thesis request.
  *
- * @param id identifier of the request to reject
- * @returns backend response with updated request state
+ * @param id - Identifier of the request to reject.
+ * @returns Updated thesis request returned by the backend.
  */
-export async function rejectRequest(id: number) {
-    return apiFetch(`/requests/${id}/reject`, {
+export async function rejectRequest(id: number): Promise<ThesisRequest> {
+    return apiFetch<ThesisRequest>(`/requests/${id}/reject`, {
         method: "PATCH",
     });
 }
@@ -112,11 +121,11 @@ export async function rejectRequest(id: number) {
 /**
  * Cancels a thesis request.
  *
- * @param id identifier of the request to cancel
- * @returns backend response with updated request state
+ * @param id - Identifier of the request to cancel.
+ * @returns Updated thesis request returned by the backend.
  */
-export async function cancelRequest(id: number) {
-    return apiFetch(`/requests/${id}/cancel`, {
+export async function cancelRequest(id: number): Promise<ThesisRequest> {
+    return apiFetch<ThesisRequest>(`/requests/${id}/cancel`, {
         method: "PATCH",
     });
 }

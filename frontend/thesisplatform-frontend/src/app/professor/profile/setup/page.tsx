@@ -13,6 +13,9 @@ import {
 } from "@/lib/theses";
 import type { SupervisedThesis } from "@/types/professor";
 
+/**
+ * Response returned by the backend when retrieving the current professor profile.
+ */
 type ProfessorProfileResponse = {
     id: number;
     email: string;
@@ -31,6 +34,13 @@ type ProfessorProfileResponse = {
 const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
+/**
+ * Professor profile creation and edition page.
+ *
+ * This component allows professor users to complete or update their academic
+ * profile, select doctoral programs, define research lines, upload a CV and
+ * manage previously supervised or ongoing doctoral theses.
+ */
 export default function ProfessorProfileSetupPage() {
     const router = useRouter();
 
@@ -72,6 +82,14 @@ export default function ProfessorProfileSetupPage() {
     const [existingCvUrl, setExistingCvUrl] = useState("");
     const [isEditMode, setIsEditMode] = useState(false);
 
+    /**
+     * Initializes the page by validating the current session, checking that the
+     * authenticated user is a professor and loading all data required by the form.
+     *
+     * If a professor profile already exists, the form is populated and the page
+     * switches to edit mode. If the profile does not exist, the page remains in
+     * creation mode.
+     */
     useEffect(() => {
         async function init() {
             if (!isAuthenticated()) {
@@ -118,7 +136,6 @@ export default function ProfessorProfileSetupPage() {
                     const loadedTheses = await getMySupervisedTheses();
                     setTheses(loadedTheses);
                 } catch {
-                    // si no existe perfil todavía, se queda en modo creación
                 }
             } catch (err) {
                 if (err instanceof Error) {
@@ -134,6 +151,15 @@ export default function ProfessorProfileSetupPage() {
         init();
     }, [router]);
 
+    /**
+     * Indicates whether all mandatory profile fields are completed.
+     *
+     * The required fields depend on the current mode:
+     * - In creation mode, a CV file must be provided.
+     * - In edit mode, either an existing CV or a new CV file is required.
+     * - If the professor is available to supervise theses, the maximum number of
+     *   doctoral students must also be provided.
+     */
     const isFormFilled = useMemo(() => {
         const baseFieldsFilled =
             firstName.trim() !== "" &&
@@ -162,6 +188,11 @@ export default function ProfessorProfileSetupPage() {
         cvFile,
     ]);
 
+    /**
+     * Adds or removes a doctoral program from the current selection.
+     *
+     * @param id - Identifier of the doctoral program to toggle.
+     */
     function toggleId(id: number) {
         setSelectedDoctoralPrograms((prev) =>
             prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
@@ -172,10 +203,21 @@ export default function ProfessorProfileSetupPage() {
         }
     }
 
+    /**
+     * Normalizes a research keyword by trimming spaces and collapsing repeated
+     * whitespace.
+     *
+     * @param value - Raw keyword entered by the user.
+     * @returns Normalized keyword.
+     */
     function normalizeKeyword(value: string) {
         return value.trim().replace(/\s+/g, " ");
     }
 
+    /**
+     * Adds the current research input as a new keyword, avoiding duplicates in a
+     * case-insensitive way.
+     */
     function addKeyword() {
         const value = normalizeKeyword(researchInput);
         if (!value) return;
@@ -195,12 +237,22 @@ export default function ProfessorProfileSetupPage() {
         }
     }
 
+    /**
+     * Removes a research keyword from the selected list.
+     *
+     * @param keywordToRemove - Keyword that must be removed.
+     */
     function removeKeyword(keywordToRemove: string) {
         setResearchKeywords((prev) =>
             prev.filter((keyword) => keyword !== keywordToRemove)
         );
     }
 
+    /**
+     * Creates a keyword when the user presses Enter or comma in the keyword input.
+     *
+     * @param e - Keyboard event triggered from the research line input.
+     */
     function handleKeywordKeyDown(e: KeyboardEvent<HTMLInputElement>) {
         if (e.key === "Enter" || e.key === ",") {
             e.preventDefault();
@@ -208,6 +260,13 @@ export default function ProfessorProfileSetupPage() {
         }
     }
 
+    /**
+     * Validates the selected CV file before allowing it to be submitted.
+     *
+     * Only PDF files up to 5 MB are accepted.
+     *
+     * @param file - File selected from the input element.
+     */
     function validateCv(file: File | null) {
         if (!file) {
             setCvFile(null);
@@ -237,6 +296,12 @@ export default function ProfessorProfileSetupPage() {
         setFieldErrors((prev) => ({ ...prev, cv: "" }));
     }
 
+    /**
+     * Uploads a professor CV file to the backend.
+     *
+     * @param file - Valid PDF file to upload.
+     * @returns Relative or absolute CV URL returned by the backend.
+     */
     async function uploadProfessorCv(file: File) {
         const token = getToken();
         if (!token) {
@@ -270,8 +335,12 @@ export default function ProfessorProfileSetupPage() {
         }
 
         return response.text();
-    }
-
+    }    /**
+     * Creates the professor profile together with the required CV file.
+     *
+     * The request is sent as multipart data because it includes both structured
+     * profile information and a PDF document.
+     */
     async function createProfileWithCv() {
         const token = getToken();
         if (!token) {
@@ -330,6 +399,9 @@ export default function ProfessorProfileSetupPage() {
         }
     }
 
+    /**
+     * Updates the professor profile and uploads a new CV only if the user selected one.
+     */
     async function updateProfileAndOptionalCv() {
         const cvUrlToKeep = existingCvUrl || null;
 
@@ -356,8 +428,8 @@ export default function ProfessorProfileSetupPage() {
     }
 
     /**
- * Resets the supervised thesis form and exits edit mode.
- */
+     * Resets the supervised thesis form and exits thesis edit mode.
+     */
     function resetThesisForm() {
         setThesisForm({
             doctoralStudentName: "",
@@ -376,7 +448,7 @@ export default function ProfessorProfileSetupPage() {
     /**
      * Loads a supervised thesis into the form so it can be edited.
      *
-     * @param thesis supervised thesis selected for edition
+     * @param thesis - Supervised thesis selected for edition.
      */
     function handleEditThesis(thesis: SupervisedThesis) {
         setEditingThesisId(thesis.id);
@@ -394,12 +466,12 @@ export default function ProfessorProfileSetupPage() {
     }
 
     /**
- * Adds a supervised thesis locally during profile setup or updates an existing thesis.
- *
- * <p>When the profile is being created, theses are stored locally until the
- * professor profile has been saved. In edit mode, existing theses are updated
- * directly through the backend.</p>
- */
+     * Saves a supervised thesis from the local form.
+     *
+     * During profile creation, theses are stored locally until the professor
+     * profile is created. In edit mode, existing theses are updated directly
+     * through the backend.
+     */
     async function saveThesisFromSetup() {
         if (
             !thesisForm.doctoralStudentName.trim() ||
@@ -451,6 +523,13 @@ export default function ProfessorProfileSetupPage() {
         resetThesisForm();
     }
 
+    /**
+     * Removes a supervised thesis from the current list.
+     *
+     * In edit mode, the thesis is also deleted from the backend.
+     *
+     * @param thesis - Thesis selected for deletion.
+     */
     async function removeThesis(thesis: SupervisedThesis) {
         if (isEditMode) {
             await deleteSupervisedThesis(thesis.id);
@@ -459,6 +538,14 @@ export default function ProfessorProfileSetupPage() {
         setTheses((prev) => prev.filter((item) => item.id !== thesis.id));
     }
 
+    /**
+     * Validates the complete professor profile form and persists the data.
+     *
+     * Depending on the current mode, it either creates a new profile with its CV
+     * or updates the existing profile and optionally replaces the CV.
+     *
+     * @param e - Form submission event.
+     */
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
 
@@ -538,7 +625,6 @@ export default function ProfessorProfileSetupPage() {
             </main>
         );
     }
-
     return (
         <main className="mx-auto min-h-screen max-w-5xl px-6 py-10">
             <div className="mb-8">

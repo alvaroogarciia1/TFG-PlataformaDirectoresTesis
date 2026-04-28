@@ -1,5 +1,5 @@
 /**
- * Type representing a doctoral program entry from the backend catalog.
+ * Doctoral program entity returned by the backend catalog.
  */
 export interface DoctoralProgram {
     /**
@@ -14,7 +14,7 @@ export interface DoctoralProgram {
 }
 
 /**
- * Type representing a research line entry from the backend catalog.
+ * Research line entity returned by the backend catalog.
  */
 export interface ResearchLine {
     /**
