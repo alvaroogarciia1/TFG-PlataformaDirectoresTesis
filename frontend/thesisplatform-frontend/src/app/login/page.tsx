@@ -7,14 +7,8 @@ import { Eye, EyeOff } from "lucide-react";
 import { saveSession } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { AuthResponse } from "@/types/auth";
+import Image from "next/image";
 
-/**
- * Login page.
- *
- * Allows registered users to authenticate with their email and password.
- * After a successful login, the user session is stored locally and the user is
- * redirected to the dashboard that corresponds to their role.
- */
 export default function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -28,74 +22,42 @@ export default function LoginPage() {
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
 
-    const isFormFilled =
-        email.trim() !== "" &&
-        password.trim() !== "";
+    const isFormFilled = email.trim() !== "" && password.trim() !== "";
 
-    /**
-     * Validates the login form, sends the credentials to the backend and stores
-     * the authenticated session if the login request succeeds.
-     *
-     * @param e - Form submission event.
-     */
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
 
-        if (!isFormFilled) {
-            return;
-        }
-
         setError("");
         setFieldErrors({});
-        setLoading(true);
 
         const errors: Record<string, string> = {};
 
-        if (!email.trim()) {
-            errors.email = "Introduce tu correo.";
-        }
-
-        if (!password.trim()) {
-            errors.password = "Introduce tu contraseña.";
-        }
+        if (!email.trim()) errors.email = "Introduce tu correo.";
+        if (!password.trim()) errors.password = "Introduce tu contraseña.";
 
         if (Object.keys(errors).length > 0) {
             setFieldErrors(errors);
-            setLoading(false);
             return;
         }
+
+        setLoading(true);
 
         try {
             const response = await apiFetch<AuthResponse>(
                 "/auth/login",
                 {
                     method: "POST",
-                    body: JSON.stringify({
-                        email,
-                        password,
-                    }),
+                    body: JSON.stringify({ email, password }),
                 },
                 false
             );
 
             saveSession(response);
 
-            if (response.role === "STUDENT") {
-                router.push("/student/dashboard");
-                return;
-            }
-
-            if (response.role === "PROFESSOR") {
-                router.push("/professor/dashboard");
-                return;
-            }
-
-            if (response.role === "ADMIN") {
-                router.push("/admin/dashboard");
-                return;
-            }
-
-            router.push("/dashboard");
+            if (response.role === "STUDENT") router.push("/student/dashboard");
+            else if (response.role === "PROFESSOR") router.push("/professor/dashboard");
+            else if (response.role === "ADMIN") router.push("/admin/dashboard");
+            else router.push("/dashboard");
         } catch (err) {
             if (err instanceof Error) {
                 if (err.message.includes("Invalid credentials")) {
@@ -106,7 +68,7 @@ export default function LoginPage() {
                     setError(err.message);
                 }
             } else {
-                setError("No se ha podido iniciar sesión");
+                setError("No se ha podido iniciar sesión.");
             }
         } finally {
             setLoading(false);
@@ -114,32 +76,55 @@ export default function LoginPage() {
     }
 
     return (
-        <main className="mx-auto flex min-h-screen max-w-md items-center px-6">
-            <div className="w-full rounded-2xl border p-6 shadow-sm">
+        <main className="flex min-h-screen items-center justify-center px-6 py-10">
+            <section className="w-full max-w-md rounded-[2rem] border border-white/70 bg-white/90 p-8 shadow-xl shadow-slate-200/80 backdrop-blur">
                 <Link
                     href="/"
-                    className="mb-4 inline-block text-sm text-gray-500 transition hover:text-gray-800"
+                    className="mb-6 inline-flex text-sm font-medium text-slate-500 transition hover:text-blue-700"
                 >
                     ← Volver al inicio
                 </Link>
 
-                <h1 className="mb-2 text-2xl font-semibold">Iniciar sesión</h1>
-                <p className="mb-6 text-sm text-gray-600">
-                    Accede a la plataforma con tu cuenta.
-                </p>
+                <div className="mb-6 flex justify-center">
+                    <Image
+                        src="/thesismatch-logo.jpeg"
+                        alt="Logo ThesisMatch"
+                        width={90}
+                        height={90}
+                        className="rounded-2xl shadow-md"
+                        priority
+                    />
+                </div>
+
+                <div className="mb-8">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">
+                        Acceso a la plataforma
+                    </p>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+                        Iniciar sesión
+                    </h1>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                        Introduce tus credenciales para acceder a tu panel según tu rol.
+                    </p>
+                </div>
 
                 {resetSuccess === "true" && (
-                    <div className="mb-4 rounded-xl border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-700">
+                    <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
                         La contraseña se ha actualizado correctamente. Ya puedes iniciar sesión.
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="mb-1 block text-sm font-medium">Correo</label>
+                        <label className="mb-2 block text-sm font-semibold text-slate-800">
+                            Correo electrónico
+                        </label>
                         <input
                             type="email"
-                            className={`w-full rounded-xl border px-3 py-2 outline-none ${fieldErrors.email ? "border-red-500 bg-red-50" : ""
+                            placeholder="Introduce tu correo electrónico"
+                            className={`w-full rounded-2xl border bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 ${fieldErrors.email
+                                ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-100"
+                                : "border-slate-200"
                                 }`}
                             value={email}
                             onChange={(e) => {
@@ -150,16 +135,23 @@ export default function LoginPage() {
                             }}
                         />
                         {fieldErrors.email && (
-                            <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>
+                            <p className="mt-2 text-sm font-medium text-red-600">
+                                {fieldErrors.email}
+                            </p>
                         )}
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-sm font-medium">Contraseña</label>
+                        <label className="mb-2 block text-sm font-semibold text-slate-800">
+                            Contraseña
+                        </label>
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
-                                className={`w-full rounded-xl border px-3 py-2 pr-11 outline-none ${fieldErrors.password ? "border-red-500 bg-red-50" : ""
+                                placeholder="Introduce tu contraseña"
+                                className={`w-full rounded-2xl border bg-white px-4 py-3 pr-12 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 ${fieldErrors.password
+                                    ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-100"
+                                    : "border-slate-200"
                                     }`}
                                 value={password}
                                 onChange={(e) => {
@@ -169,38 +161,48 @@ export default function LoginPage() {
                                     }
                                 }}
                             />
+
                             <button
                                 type="button"
                                 onClick={() => setShowPassword((prev) => !prev)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 transition hover:text-gray-800"
-                                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-blue-700"
+                                aria-label={
+                                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                                }
                             >
-                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
                             </button>
                         </div>
+
                         {fieldErrors.password && (
-                            <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+                            <p className="mt-2 text-sm font-medium text-red-600">
+                                {fieldErrors.password}
+                            </p>
                         )}
                     </div>
 
-                    {error && <p className="text-sm text-red-600">{error}</p>}
+                    {error && (
+                        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                            {error}
+                        </div>
+                    )}
 
                     <button
                         type="submit"
                         disabled={loading || !isFormFilled}
-                        className="w-full rounded-xl border px-4 py-2 font-medium transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="w-full rounded-2xl bg-blue-700 px-5 py-3 font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                     >
                         {loading ? "Entrando..." : "Entrar"}
                     </button>
 
                     <Link
                         href="/forgot-password"
-                        className="block text-center text-sm text-gray-500 transition hover:text-gray-800"
+                        className="block text-center text-sm font-medium text-slate-500 transition hover:text-blue-700"
                     >
                         ¿Has olvidado tu contraseña?
                     </Link>
                 </form>
-            </div>
+            </section>
         </main>
     );
 }

@@ -7,14 +7,8 @@ import { Eye, EyeOff } from "lucide-react";
 import { saveSession } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { AuthResponse, RegisterResponse, UserRole } from "@/types/auth";
+import Image from "next/image";
 
-/**
- * User registration page.
- *
- * Allows a new student or professor to create an account. After registration,
- * the user is automatically authenticated and redirected to the corresponding
- * profile setup page according to their selected role.
- */
 export default function RegisterPage() {
     const router = useRouter();
 
@@ -33,12 +27,6 @@ export default function RegisterPage() {
         password.trim() !== "" &&
         confirmPassword.trim() !== "";
 
-    /**
-     * Validates the registration form, creates the account in the backend and
-     * performs an automatic login to start the profile completion flow.
-     *
-     * @param e - Form submission event.
-     */
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
 
@@ -135,26 +123,47 @@ export default function RegisterPage() {
     }
 
     return (
-        <main className="mx-auto flex min-h-screen max-w-md items-center px-6">
-            <div className="w-full rounded-2xl border p-6 shadow-sm">
+        <main className="flex min-h-screen items-center justify-center px-6 py-10">
+            <section className="w-full max-w-md rounded-[2rem] border border-white/70 bg-white/90 p-8 shadow-xl shadow-slate-200/80 backdrop-blur">
                 <Link
                     href="/"
-                    className="mb-4 inline-block text-sm text-gray-500 transition hover:text-gray-800"
+                    className="mb-6 inline-flex text-sm font-medium text-slate-500 transition hover:text-blue-700"
                 >
                     ← Volver al inicio
                 </Link>
 
-                <h1 className="mb-2 text-2xl font-semibold">Crear cuenta</h1>
-                <p className="mb-6 text-sm text-gray-600">
-                    Regístrate como estudiante o profesor.
-                </p>
+                <div className="mb-6 flex justify-center">
+                    <Image
+                        src="/thesismatch-logo.jpeg"
+                        alt="Logo ThesisMatch"
+                        width={90}
+                        height={90}
+                        className="rounded-2xl shadow-md"
+                        priority
+                    />
+                </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="mb-8">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">
+                        Nueva cuenta
+                    </p>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+                        Crear cuenta
+                    </h1>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                        Regístrate como estudiante o profesor para comenzar a completar tu perfil académico.
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="mb-1 block text-sm font-medium">Correo</label>
+                        <label className="mb-2 block text-sm font-semibold text-slate-800">
+                            Correo electrónico
+                        </label>
                         <input
                             type="email"
-                            className={`w-full rounded-xl border px-3 py-2 outline-none ${fieldErrors.email ? "border-red-500 bg-red-50" : ""
+                            placeholder="Introduce tu correo electrónico"
+                            className={`w-full rounded-2xl border bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 ${fieldErrors.email ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-100" : "border-slate-200"
                                 }`}
                             value={email}
                             onChange={(e) => {
@@ -165,16 +174,19 @@ export default function RegisterPage() {
                             }}
                         />
                         {fieldErrors.email && (
-                            <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>
+                            <p className="mt-2 text-sm font-medium text-red-600">{fieldErrors.email}</p>
                         )}
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-sm font-medium">Contraseña</label>
+                        <label className="mb-2 block text-sm font-semibold text-slate-800">
+                            Contraseña
+                        </label>
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
-                                className={`w-full rounded-xl border px-3 py-2 pr-11 outline-none ${fieldErrors.password ? "border-red-500 bg-red-50" : ""
+                                placeholder="Introduce tu contraseña"
+                                className={`w-full rounded-2xl border bg-white px-4 py-3 pr-12 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 ${fieldErrors.password ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-100" : "border-slate-200"
                                     }`}
                                 value={password}
                                 onChange={(e) => {
@@ -190,25 +202,26 @@ export default function RegisterPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword((prev) => !prev)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 transition hover:text-gray-800"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-blue-700"
                                 aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                             >
-                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
                             </button>
                         </div>
                         {fieldErrors.password && (
-                            <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+                            <p className="mt-2 text-sm font-medium text-red-600">{fieldErrors.password}</p>
                         )}
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-sm font-medium">
+                        <label className="mb-2 block text-sm font-semibold text-slate-800">
                             Confirmar contraseña
                         </label>
                         <div className="relative">
                             <input
                                 type={showConfirmPassword ? "text" : "password"}
-                                className={`w-full rounded-xl border px-3 py-2 pr-11 outline-none ${fieldErrors.confirmPassword ? "border-red-500 bg-red-50" : ""
+                                placeholder="Repite la contraseña"
+                                className={`w-full rounded-2xl border bg-white px-4 py-3 pr-12 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 ${fieldErrors.confirmPassword ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-100" : "border-slate-200"
                                     }`}
                                 value={confirmPassword}
                                 onChange={(e) => {
@@ -224,27 +237,29 @@ export default function RegisterPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowConfirmPassword((prev) => !prev)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 transition hover:text-gray-800"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-blue-700"
                                 aria-label={
                                     showConfirmPassword
                                         ? "Ocultar confirmación de contraseña"
                                         : "Mostrar confirmación de contraseña"
                                 }
                             >
-                                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                {showConfirmPassword ? <EyeOff size={19} /> : <Eye size={19} />}
                             </button>
                         </div>
                         {fieldErrors.confirmPassword && (
-                            <p className="mt-1 text-sm text-red-600">
+                            <p className="mt-2 text-sm font-medium text-red-600">
                                 {fieldErrors.confirmPassword}
                             </p>
                         )}
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-sm font-medium">Rol</label>
+                        <label className="mb-2 block text-sm font-semibold text-slate-800">
+                            Rol
+                        </label>
                         <select
-                            className={`w-full rounded-xl border px-3 py-2 ${fieldErrors.role ? "border-red-500 bg-red-50" : ""
+                            className={`w-full rounded-2xl border bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 ${fieldErrors.role ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-100" : "border-slate-200"
                                 }`}
                             value={role}
                             onChange={(e) => {
@@ -258,21 +273,25 @@ export default function RegisterPage() {
                             <option value="PROFESSOR">Profesor</option>
                         </select>
                         {fieldErrors.role && (
-                            <p className="mt-1 text-sm text-red-600">{fieldErrors.role}</p>
+                            <p className="mt-2 text-sm font-medium text-red-600">{fieldErrors.role}</p>
                         )}
                     </div>
 
-                    {error && <p className="text-sm text-red-600">{error}</p>}
+                    {error && (
+                        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                            {error}
+                        </div>
+                    )}
 
                     <button
                         type="submit"
                         disabled={loading || !isFormFilled}
-                        className="w-full rounded-xl border px-4 py-2 font-medium transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="w-full rounded-2xl bg-blue-700 px-5 py-3 font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                     >
                         {loading ? "Registrando..." : "Registrarse"}
                     </button>
                 </form>
-            </div>
+            </section>
         </main>
     );
 }

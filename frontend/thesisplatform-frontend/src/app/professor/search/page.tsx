@@ -10,6 +10,7 @@ import { apiFetch } from "@/lib/api";
 import { MatchResult } from "@/types/matching";
 import { StudentProfile } from "@/types/student";
 import { DoctoralProgram, ResearchLine } from "@/types/catalog";
+import Image from "next/image";
 
 const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
@@ -279,31 +280,46 @@ export default function ProfessorSearchPage() {
         requestSubject.trim() !== "" && requestMessage.trim() !== "";
 
     return (
-        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-gray-900">
-            <div className="mb-8 flex items-start gap-4">
-                <button
-                    onClick={() => router.push("/professor/dashboard")}
-                    className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-400 text-2xl text-gray-900 transition hover:bg-gray-100"
-                >
-                    ←
-                </button>
+        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-slate-900">
+            <div className="mb-10 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-4">
+                    <button
+                        onClick={() => router.push("/professor/dashboard")}
+                        className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-semibold text-slate-700 shadow-sm transition hover:bg-blue-50 hover:text-blue-700"
+                    >
+                        ←
+                    </button>
 
-                <div className="flex-1">
-                    <h1 className="mb-3 text-3xl font-bold">Búsqueda de estudiantes de tesis</h1>
-                    <p className="max-w-4xl text-lg italic text-gray-600">
-                        Puede consultar todos los estudiantes registrados, filtrar resultados y
-                        acotar la lista por nombre. También puede utilizar la búsqueda
-                        automática.
-                    </p>
+                    <div className="flex gap-4">
+                        <Image
+                            src="/thesismatch-logo.jpeg"
+                            alt="Logo ThesisMatch"
+                            width={52}
+                            height={52}
+                            className="hidden rounded-xl sm:block"
+                        />
+
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">
+                                Área de profesor
+                            </p>
+                            <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">
+                                Búsqueda de estudiantes de tesis
+                            </h1>
+                            <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-600 sm:text-base">
+                                Consulta estudiantes registrados mediante filtros estructurados o utiliza la búsqueda automática basada en compatibilidad académica.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className="mb-6 flex gap-3">
+            <div className="mb-6 flex flex-wrap gap-3 rounded-[1.5rem] border border-white/70 bg-white/80 p-2 shadow-lg shadow-slate-200/70">
                 <button
                     onClick={() => setMode("manual")}
-                    className={`rounded-xl px-5 py-3 font-medium transition ${mode === "manual"
-                        ? "border border-gray-300 bg-white text-gray-900"
-                        : "border border-gray-400 text-gray-900 hover:bg-gray-100"
+                    className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${mode === "manual"
+                            ? "bg-blue-700 text-white shadow-md shadow-blue-700/20"
+                            : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
                         }`}
                 >
                     Búsqueda manual
@@ -311,9 +327,9 @@ export default function ProfessorSearchPage() {
 
                 <button
                     onClick={() => setMode("automatic")}
-                    className={`rounded-xl px-5 py-3 font-medium transition ${mode === "automatic"
-                        ? "border border-gray-300 bg-white text-gray-900"
-                        : "border border-gray-400 text-gray-900 hover:bg-gray-100"
+                    className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${mode === "automatic"
+                            ? "bg-blue-700 text-white shadow-md shadow-blue-700/20"
+                            : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
                         }`}
                 >
                     Búsqueda automática

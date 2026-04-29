@@ -10,6 +10,7 @@ import { apiFetch } from "@/lib/api";
 import { MatchResult } from "@/types/matching";
 import { ProfessorProfile } from "@/types/professor";
 import { DoctoralProgram, ResearchLine } from "@/types/catalog";
+import Image from "next/image";
 
 const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
@@ -304,31 +305,46 @@ export default function StudentSearchPage() {
         requestSubject.trim() !== "" && requestMessage.trim() !== "";
 
     return (
-        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-gray-900">
-            <div className="mb-8 flex items-start gap-4">
-                <button
-                    onClick={() => router.push("/student/dashboard")}
-                    className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-400 text-2xl text-gray-900 transition hover:bg-gray-100"
-                >
-                    ←
-                </button>
+        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-slate-900">
+            <div className="mb-10 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-4">
+                    <button
+                        onClick={() => router.push("/student/dashboard")}
+                        className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-semibold text-slate-700 shadow-sm transition hover:bg-blue-50 hover:text-blue-700"
+                    >
+                        ←
+                    </button>
 
-                <div className="flex-1">
-                    <h1 className="mb-3 text-3xl font-bold">Búsqueda de directores de tesis</h1>
-                    <p className="max-w-4xl text-lg italic text-gray-600">
-                        Puede consultar todos los profesores disponibles, filtrar resultados y
-                        acotar la lista por nombre. También puede utilizar la búsqueda automática
-                        basada en compatibilidad.
-                    </p>
+                    <div className="flex gap-4">
+                        <Image
+                            src="/thesismatch-logo.jpeg"
+                            alt="Logo ThesisMatch"
+                            width={52}
+                            height={52}
+                            className="hidden rounded-xl sm:block"
+                        />
+
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">
+                                Área de estudiante
+                            </p>
+                            <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">
+                                Búsqueda de directores de tesis
+                            </h1>
+                            <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-600 sm:text-base">
+                                Consulta profesores disponibles mediante filtros estructurados o utiliza la búsqueda automática basada en compatibilidad académica.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className="mb-6 flex gap-3">
+            <div className="mb-6 flex flex-wrap gap-3 rounded-[1.5rem] border border-white/70 bg-white/80 p-2 shadow-lg shadow-slate-200/70">
                 <button
                     onClick={() => setMode("manual")}
-                    className={`rounded-xl px-5 py-3 font-medium transition ${mode === "manual"
-                        ? "border border-gray-300 bg-white text-gray-900"
-                        : "border border-gray-400 text-gray-900 hover:bg-gray-100"
+                    className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${mode === "manual"
+                            ? "bg-blue-700 text-white shadow-md shadow-blue-700/20"
+                            : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
                         }`}
                 >
                     Búsqueda manual
@@ -336,9 +352,9 @@ export default function StudentSearchPage() {
 
                 <button
                     onClick={() => setMode("automatic")}
-                    className={`rounded-xl px-5 py-3 font-medium transition ${mode === "automatic"
-                        ? "border border-gray-300 bg-white text-gray-900"
-                        : "border border-gray-400 text-gray-900 hover:bg-gray-100"
+                    className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${mode === "automatic"
+                            ? "bg-blue-700 text-white shadow-md shadow-blue-700/20"
+                            : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
                         }`}
                 >
                     Búsqueda automática
@@ -346,102 +362,64 @@ export default function StudentSearchPage() {
             </div>
 
             {error && (
-                <div className="mb-6 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-red-700">
+                <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-700 shadow-sm">
                     {error}
                 </div>
             )}
 
             {mode === "manual" && (
                 <>
-                    <section className="mb-8 rounded-[2rem] border border-gray-300 bg-white p-6 md:p-8">
+                    <section className="mb-8 rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-xl shadow-slate-200/70 backdrop-blur md:p-8">
                         <input
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Buscar nombre de profesor"
-                            className="mb-6 w-full rounded-3xl border border-gray-300 bg-white px-6 py-4 text-lg text-gray-900 outline-none placeholder:text-gray-400"
+                            className="mb-6 w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                         />
 
                         <div className="mb-5 grid gap-3 md:grid-cols-2">
-                            <label className="flex items-center gap-3 text-[16px] font-medium text-gray-900">
-                                <input
-                                    type="checkbox"
-                                    checked={showResearchLineFilter}
-                                    onChange={(e) => setShowResearchLineFilter(e.target.checked)}
-                                    className="h-5 w-5"
-                                />
+                            <label className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
+                                <input type="checkbox" checked={showResearchLineFilter} onChange={(e) => setShowResearchLineFilter(e.target.checked)} className="h-5 w-5" />
                                 Línea de investigación
                             </label>
 
-                            <label className="flex items-center gap-3 text-[16px] font-medium text-gray-900">
-                                <input
-                                    type="checkbox"
-                                    checked={showDoctoralProgramFilter}
-                                    onChange={(e) => setShowDoctoralProgramFilter(e.target.checked)}
-                                    className="h-5 w-5"
-                                />
+                            <label className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
+                                <input type="checkbox" checked={showDoctoralProgramFilter} onChange={(e) => setShowDoctoralProgramFilter(e.target.checked)} className="h-5 w-5" />
                                 Programa de doctorado
                             </label>
 
-                            <label className="flex items-center gap-3 text-[16px] font-medium text-gray-900">
-                                <input
-                                    type="checkbox"
-                                    checked={showAvailabilityFilter}
-                                    onChange={(e) => setShowAvailabilityFilter(e.target.checked)}
-                                    className="h-5 w-5"
-                                />
+                            <label className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
+                                <input type="checkbox" checked={showAvailabilityFilter} onChange={(e) => setShowAvailabilityFilter(e.target.checked)} className="h-5 w-5" />
                                 Disponibilidad
                             </label>
 
-                            <label className="flex items-center gap-3 text-[16px] font-medium text-gray-900">
-                                <input
-                                    type="checkbox"
-                                    checked={showInstitutionFilter}
-                                    onChange={(e) => setShowInstitutionFilter(e.target.checked)}
-                                    className="h-5 w-5"
-                                />
+                            <label className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
+                                <input type="checkbox" checked={showInstitutionFilter} onChange={(e) => setShowInstitutionFilter(e.target.checked)} className="h-5 w-5" />
                                 Institución
                             </label>
                         </div>
 
                         <div className="grid gap-4 md:grid-cols-2">
                             {showResearchLineFilter && (
-                                <select
-                                    value={selectedResearchLineId}
-                                    onChange={(e) => setSelectedResearchLineId(e.target.value)}
-                                    className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-[16px] text-gray-900"
-                                    disabled={catalogLoading}
-                                >
+                                <select value={selectedResearchLineId} onChange={(e) => setSelectedResearchLineId(e.target.value)} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" disabled={catalogLoading}>
                                     <option value="">Seleccione una línea</option>
                                     {researchLines.map((line) => (
-                                        <option key={line.id} value={line.id}>
-                                            {line.name}
-                                        </option>
+                                        <option key={line.id} value={line.id}>{line.name}</option>
                                     ))}
                                 </select>
                             )}
 
                             {showDoctoralProgramFilter && (
-                                <select
-                                    value={selectedDoctoralProgramId}
-                                    onChange={(e) => setSelectedDoctoralProgramId(e.target.value)}
-                                    className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-[16px] text-gray-900"
-                                    disabled={catalogLoading}
-                                >
+                                <select value={selectedDoctoralProgramId} onChange={(e) => setSelectedDoctoralProgramId(e.target.value)} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" disabled={catalogLoading}>
                                     <option value="">Seleccione un programa</option>
                                     {doctoralPrograms.map((program) => (
-                                        <option key={program.id} value={program.id}>
-                                            {program.name}
-                                        </option>
+                                        <option key={program.id} value={program.id}>{program.name}</option>
                                     ))}
                                 </select>
                             )}
 
                             {showAvailabilityFilter && (
-                                <select
-                                    value={availableToSupervise}
-                                    onChange={(e) => setAvailableToSupervise(e.target.value)}
-                                    className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-[16px] text-gray-900"
-                                >
+                                <select value={availableToSupervise} onChange={(e) => setAvailableToSupervise(e.target.value)} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
                                     <option value="any">Cualquiera</option>
                                     <option value="true">Disponible</option>
                                     <option value="false">No disponible</option>
@@ -449,79 +427,48 @@ export default function StudentSearchPage() {
                             )}
 
                             {showInstitutionFilter && (
-                                <input
-                                    value={institution}
-                                    onChange={(e) => setInstitution(e.target.value)}
-                                    placeholder="Institución"
-                                    className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-[16px] text-gray-900 placeholder:text-gray-400"
-                                />
+                                <input value={institution} onChange={(e) => setInstitution(e.target.value)} placeholder="Institución" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
                             )}
                         </div>
 
                         <div className="mt-6 flex flex-wrap gap-4">
-                            <button
-                                onClick={handleManualSearch}
-                                disabled={loading}
-                                className="rounded-2xl border border-gray-300 bg-white px-8 py-3 text-lg font-medium text-gray-900 transition hover:bg-gray-100 disabled:opacity-50"
-                            >
+                            <button onClick={handleManualSearch} disabled={loading} className="rounded-2xl bg-blue-700 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50">
                                 {loading ? "Buscando..." : "Buscar"}
                             </button>
 
-                            <button
-                                onClick={clearManualFilters}
-                                className="rounded-2xl border border-gray-400 px-6 py-3 text-lg font-medium text-gray-900 transition hover:bg-gray-100"
-                            >
+                            <button onClick={clearManualFilters} className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
                                 Limpiar
                             </button>
                         </div>
                     </section>
 
-                    <section className="overflow-hidden rounded-[2rem] border border-gray-300 bg-white">
+                    <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 shadow-xl shadow-slate-200/70">
                         <table className="w-full border-collapse">
                             <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
-                                        Nombre y apellidos profesor
-                                    </th>
-                                    <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
-                                        Perfil profesor
-                                    </th>
-                                    <th className="border-b border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
-                                        ¿Desea enviar solicitud al profesor?
-                                    </th>
+                                <tr className="bg-slate-50">
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">Nombre y apellidos profesor</th>
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">Perfil profesor</th>
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">Solicitud</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {manualResults.length === 0 ? (
                                     <tr>
-                                        <td colSpan={3} className="px-4 py-16 text-center text-lg text-gray-500">
+                                        <td colSpan={3} className="px-5 py-16 text-center text-sm text-slate-500">
                                             No hay profesores que coincidan con los filtros seleccionados.
                                         </td>
                                     </tr>
                                 ) : (
                                     manualResults.map((prof) => (
-                                        <tr key={prof.id} className="border-t border-gray-300">
-                                            <td className="border-r border-gray-300 px-4 py-5 text-lg">
-                                                {prof.firstName} {prof.lastName}
-                                            </td>
-                                            <td className="border-r border-gray-300 px-4 py-5">
-                                                <button
-                                                    onClick={() => setSelectedProfessor(prof)}
-                                                    className="rounded-xl border border-gray-400 px-5 py-2 text-gray-900 transition hover:bg-gray-100"
-                                                >
+                                        <tr key={prof.id} className="border-t border-slate-100 transition hover:bg-blue-50/40">
+                                            <td className="px-5 py-5 text-sm font-medium text-slate-900">{prof.firstName} {prof.lastName}</td>
+                                            <td className="px-5 py-5">
+                                                <button onClick={() => setSelectedProfessor(prof)} className="rounded-xl border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
                                                     Perfil
                                                 </button>
                                             </td>
-                                            <td className="px-4 py-5">
-                                                <button
-                                                    onClick={() =>
-                                                        openRequestModal(
-                                                            prof.userId,
-                                                            `${prof.firstName} ${prof.lastName}`
-                                                        )
-                                                    }
-                                                    className="rounded-xl border border-gray-400 px-5 py-2 text-gray-900 transition hover:bg-gray-100"
-                                                >
+                                            <td className="px-5 py-5">
+                                                <button onClick={() => openRequestModal(prof.userId, `${prof.firstName} ${prof.lastName}`)} className="rounded-xl bg-blue-700 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-blue-700/20 transition hover:bg-blue-800">
                                                     Enviar
                                                 </button>
                                             </td>
@@ -536,76 +483,51 @@ export default function StudentSearchPage() {
 
             {mode === "automatic" && (
                 <>
-                    <section className="mb-6">
-                        <button
-                            onClick={handleAutomaticSearch}
-                            disabled={loading}
-                            className="rounded-2xl border border-gray-300 bg-white px-8 py-3 text-lg font-medium text-gray-900 transition hover:bg-gray-100 disabled:opacity-50"
-                        >
+                    <section className="mb-6 rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-xl shadow-slate-200/70">
+                        <button onClick={handleAutomaticSearch} disabled={loading} className="rounded-2xl bg-blue-700 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50">
                             {loading ? "Cargando matches..." : "Cargar matches automáticos"}
                         </button>
                     </section>
 
-                    <section className="overflow-hidden rounded-[2rem] border border-gray-300 bg-white">
+                    <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 shadow-xl shadow-slate-200/70">
                         <table className="w-full border-collapse">
                             <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
-                                        Profesor
-                                    </th>
-                                    <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
-                                        Compatibilidad
-                                    </th>
-                                    <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
-                                        Detalle
-                                    </th>
-                                    <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
-                                        Perfil
-                                    </th>
-                                    <th className="border-b border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
-                                        Solicitud
-                                    </th>
+                                <tr className="bg-slate-50">
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">Profesor</th>
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">Compatibilidad</th>
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">Detalle</th>
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">Perfil</th>
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">Solicitud</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {matchResults.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="px-4 py-16 text-center text-lg text-gray-500">
+                                        <td colSpan={5} className="px-5 py-16 text-center text-sm text-slate-500">
                                             No hay resultados automáticos cargados.
                                         </td>
                                     </tr>
                                 ) : (
                                     matchResults.map((prof) => (
-                                        <tr key={prof.userId} className="border-t border-gray-300">
-                                            <td className="border-r border-gray-300 px-4 py-5 text-lg">
-                                                {prof.fullName}
+                                        <tr key={prof.userId} className="border-t border-slate-100 transition hover:bg-blue-50/40">
+                                            <td className="px-5 py-5 text-sm font-medium text-slate-900">{prof.fullName}</td>
+                                            <td className="px-5 py-5">
+                                                <span className="rounded-full bg-blue-50 px-4 py-2 text-sm font-bold text-blue-700">
+                                                    {Math.round(prof.totalScore)}%
+                                                </span>
                                             </td>
-                                            <td className="border-r border-gray-300 px-4 py-5 text-lg">
-                                                {Math.round(prof.totalScore)}%
+                                            <td className="px-5 py-5">
+                                                <button onClick={() => setSelectedMatch(prof)} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                                                    Ver detalle
+                                                </button>
                                             </td>
-                                            <td className="border-r border-gray-300 px-4 py-5">
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => setSelectedMatch(prof)}
-                                                        className="rounded-xl border border-gray-400 px-4 py-2 text-gray-900 transition hover:bg-gray-100"
-                                                    >
-                                                        Ver detalle
-                                                    </button>
-                                                </div>
-                                            </td>
-                                            <td className="border-r border-gray-300 px-4 py-5">
-                                                <button
-                                                    onClick={() => openProfessorProfile(prof)}
-                                                    className="rounded-xl border border-gray-400 px-5 py-2 text-gray-900 transition hover:bg-gray-100"
-                                                >
+                                            <td className="px-5 py-5">
+                                                <button onClick={() => openProfessorProfile(prof)} className="rounded-xl border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
                                                     Perfil
                                                 </button>
                                             </td>
-                                            <td className="px-4 py-5">
-                                                <button
-                                                    onClick={() => openRequestModal(prof.userId, prof.fullName)}
-                                                    className="rounded-xl border border-gray-400 px-5 py-2 text-gray-900 transition hover:bg-gray-100"
-                                                >
+                                            <td className="px-5 py-5">
+                                                <button onClick={() => openRequestModal(prof.userId, prof.fullName)} className="rounded-xl bg-blue-700 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-blue-700/20 transition hover:bg-blue-800">
                                                     Enviar
                                                 </button>
                                             </td>

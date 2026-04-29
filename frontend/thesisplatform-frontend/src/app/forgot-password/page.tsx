@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import Image from "next/image";
 
 /**
  * Password recovery request page.
@@ -67,26 +68,49 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <main className="mx-auto flex min-h-screen max-w-md items-center px-6">
-            <div className="w-full rounded-2xl border p-6 shadow-sm">
+        <main className="flex min-h-screen items-center justify-center px-6 py-10">
+            <section className="w-full max-w-md rounded-[2rem] border border-white/70 bg-white/90 p-8 shadow-xl shadow-slate-200/80 backdrop-blur">
                 <Link
                     href="/login"
-                    className="mb-4 inline-block text-sm text-gray-500 transition hover:text-gray-800"
+                    className="mb-6 inline-flex text-sm font-medium text-slate-500 transition hover:text-blue-700"
                 >
                     ← Volver al inicio de sesión
                 </Link>
 
-                <h1 className="mb-2 text-2xl font-semibold">Recuperar contraseña</h1>
-                <p className="mb-6 text-sm text-gray-600">
-                    Introduce tu correo y te enviaremos un enlace para restablecerla.
-                </p>
+                <div className="mb-6 flex justify-center">
+                    <Image
+                        src="/thesismatch-logo.jpeg"
+                        alt="Logo ThesisMatch"
+                        width={90}
+                        height={90}
+                        className="rounded-2xl shadow-md"
+                        priority
+                    />
+                </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="mb-8">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">
+                        Recuperación de acceso
+                    </p>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+                        Recuperar contraseña
+                    </h1>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                        Introduce el correo asociado a tu cuenta y te enviaremos un enlace para restablecer la contraseña.
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="mb-1 block text-sm font-medium">Correo</label>
+                        <label className="mb-2 block text-sm font-semibold text-slate-800">
+                            Correo electrónico
+                        </label>
                         <input
                             type="email"
-                            className={`w-full rounded-xl border px-3 py-2 outline-none ${fieldErrors.email ? "border-red-500 bg-red-50" : ""
+                            placeholder="Introduce tu correo electrónico"
+                            className={`w-full rounded-2xl border bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 ${fieldErrors.email
+                                ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-100"
+                                : "border-slate-200"
                                 }`}
                             value={email}
                             onChange={(e) => {
@@ -97,21 +121,27 @@ export default function ForgotPasswordPage() {
                             }}
                         />
                         {fieldErrors.email && (
-                            <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>
+                            <p className="mt-2 text-sm font-medium text-red-600">
+                                {fieldErrors.email}
+                            </p>
                         )}
                     </div>
 
-                    {error && <p className="text-sm text-red-600">{error}</p>}
+                    {error && (
+                        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                            {error}
+                        </div>
+                    )}
 
                     <button
                         type="submit"
                         disabled={loading || !isFormFilled}
-                        className="w-full rounded-xl border px-4 py-2 font-medium transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="w-full rounded-2xl bg-blue-700 px-5 py-3 font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                     >
                         {loading ? "Enviando..." : "Enviar enlace"}
                     </button>
                 </form>
-            </div>
+            </section>
         </main>
     );
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getUser, isAuthenticated, logout, clearSession } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
+import Image from "next/image";
 
 const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
@@ -91,23 +92,38 @@ export default function StudentProfilePage() {
 
     if (loading) {
         return (
-            <main className="mx-auto flex min-h-screen max-w-4xl items-center px-6">
-                <p>Cargando perfil...</p>
+            <main className="flex min-h-screen items-center justify-center px-6">
+                <div className="rounded-2xl border border-white/70 bg-white/90 px-6 py-4 text-sm font-medium text-slate-600 shadow-lg shadow-slate-200/70">
+                    Cargando perfil...
+                </div>
             </main>
         );
     }
 
     return (
-        <main className="mx-auto min-h-screen max-w-5xl px-6 py-10">
-            <div className="mb-8 flex items-center justify-between">
-                <div>
-                    <p className="text-sm text-gray-500">Área de estudiante</p>
-                    <h1 className="text-3xl font-bold">Modificar perfil</h1>
+        <main className="mx-auto min-h-screen max-w-5xl px-6 py-10 text-slate-900">
+            <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                    <Image
+                        src="/thesismatch-logo.jpeg"
+                        alt="Logo ThesisMatch"
+                        width={40}
+                        height={40}
+                        className="rounded-lg"
+                    />
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">
+                            Área de estudiante
+                        </p>
+                        <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+                            Modificar perfil
+                        </h1>
+                    </div>
                 </div>
 
                 <button
                     onClick={logout}
-                    className="rounded-xl border px-4 py-2 font-medium transition hover:bg-gray-50"
+                    className="rounded-2xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-red-50 hover:text-red-600"
                 >
                     Cerrar sesión
                 </button>
@@ -120,7 +136,7 @@ export default function StudentProfilePage() {
             )}
 
             {profile && (
-                <div className="space-y-6 rounded-2xl border p-6 shadow-sm">
+                <div className="space-y-6 rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-xl shadow-slate-200/70">
                     <div className="space-y-2">
                         <p><strong>Nombre:</strong> {profile.firstName}</p>
                         <p><strong>Apellidos:</strong> {profile.lastName}</p>
@@ -162,7 +178,7 @@ export default function StudentProfilePage() {
                                 {(profile.doctoralPrograms || []).map((program: string) => (
                                     <span
                                         key={program}
-                                        className="rounded-full border px-3 py-1 text-sm"
+                                        className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700"
                                     >
                                         {program}
                                     </span>
@@ -176,7 +192,7 @@ export default function StudentProfilePage() {
                                 {(profile.researchLines || []).map((line: string) => (
                                     <span
                                         key={line}
-                                        className="rounded-full border px-3 py-1 text-sm"
+                                        className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700"
                                     >
                                         {line}
                                     </span>
@@ -188,14 +204,14 @@ export default function StudentProfilePage() {
                     <div className="flex gap-3">
                         <button
                             onClick={() => router.push("/student/dashboard")}
-                            className="rounded-xl border px-5 py-3 font-medium"
+                            className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                         >
                             Volver
                         </button>
 
                         <button
                             onClick={() => router.push("/student/profile/setup")}
-                            className="rounded-xl border px-5 py-3 font-medium"
+                            className="rounded-2xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800"
                         >
                             Editar perfil
                         </button>

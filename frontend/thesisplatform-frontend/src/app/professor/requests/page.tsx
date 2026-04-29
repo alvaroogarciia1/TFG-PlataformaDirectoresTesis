@@ -10,6 +10,7 @@ import {
     cancelRequest,
 } from "@/lib/requests";
 import { ThesisRequest } from "@/types/requests";
+import Image from "next/image";
 
 type RequestWithDirection = ThesisRequest & {
     direction: "sent" | "received";
@@ -125,25 +126,39 @@ export default function ProfessorRequestsPage() {
     }
 
     return (
-        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-gray-900">
-            <div className="mb-8 flex items-start gap-4">
+        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-slate-900">
+            <div className="mb-10 flex items-start gap-4">
                 <button
                     onClick={() => router.push("/professor/dashboard")}
-                    className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-400 text-2xl text-gray-900 transition hover:bg-gray-100"
+                    className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-semibold text-slate-700 shadow-sm transition hover:bg-blue-50 hover:text-blue-700"
                 >
                     ←
                 </button>
 
-                <div className="flex-1">
-                    <h1 className="mb-3 text-3xl font-bold">Solicitudes</h1>
-                    <p className="max-w-4xl text-lg italic text-gray-600">
-                        Aquí puedes consultar tus solicitudes enviadas y recibidas, revisar su detalle
-                        y gestionar las que estén pendientes.
-                    </p>
+                <div className="flex gap-4">
+                    <Image
+                        src="/thesismatch-logo.jpeg"
+                        alt="Logo ThesisMatch"
+                        width={52}
+                        height={52}
+                        className="hidden rounded-xl sm:block"
+                    />
+
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">
+                            Área de profesor
+                        </p>
+                        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">
+                            Solicitudes
+                        </h1>
+                        <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-600 sm:text-base">
+                            Consulta tus solicitudes enviadas y recibidas, revisa su detalle y gestiona las que estén pendientes.
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <section className="overflow-hidden rounded-[2rem] border border-gray-300 bg-white">
+            <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 shadow-xl shadow-slate-200/70">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr className="bg-gray-100">
