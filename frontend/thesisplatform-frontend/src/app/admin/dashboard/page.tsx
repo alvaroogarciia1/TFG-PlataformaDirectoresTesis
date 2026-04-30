@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { getUser, isAuthenticated, logout, clearSession } from "@/lib/auth";
+import Image from "next/image";
 
 type UserRole = "STUDENT" | "PROFESSOR";
 
@@ -203,22 +204,35 @@ export default function AdminDashboardPage() {
     }, [loading, users]);
 
     return (
-        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10">
-            <div className="mb-8 flex items-center justify-between gap-4">
-                <div>
-                    <p className="text-sm text-gray-500">Área de administración</p>
-                    <h1 className="text-3xl font-bold">Dashboard admin</h1>
+        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 text-slate-900">
+            <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                    <Image
+                        src="/thesismatch-logo.jpeg"
+                        alt="Logo ThesisMatch"
+                        width={40}
+                        height={40}
+                        className="rounded-lg"
+                    />
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">
+                            Área de administración
+                        </p>
+                        <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+                            Panel de administración
+                        </h1>
+                    </div>
                 </div>
 
                 <button
                     onClick={logout}
-                    className="rounded-xl border px-4 py-2 font-medium transition hover:bg-gray-50"
+                    className="rounded-2xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-red-50 hover:text-red-600"
                 >
                     Cerrar sesión
                 </button>
             </div>
 
-            <div className="mb-6 flex flex-wrap items-center gap-3">
+            <div className="mb-6 flex flex-wrap items-center gap-3 rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-xl shadow-slate-200/70">
                 <input
                     type="text"
                     placeholder="Buscar usuario"
@@ -249,7 +263,7 @@ export default function AdminDashboardPage() {
 
                 <button
                     onClick={loadUsers}
-                    className="rounded-xl border px-5 py-3 font-medium transition hover:bg-gray-50"
+                    className="rounded-2xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800"
                 >
                     Buscar
                 </button>
@@ -261,7 +275,7 @@ export default function AdminDashboardPage() {
                 </div>
             )}
 
-            <div className="overflow-x-auto rounded-2xl border">
+            <div className="overflow-x-auto rounded-[2rem] border border-white/70 bg-white/90 shadow-xl shadow-slate-200/70">
                 <table className="w-full min-w-[1100px] border-collapse">
                     <thead>
                         <tr className="border-b">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { clearSession, getUser, isAuthenticated, logout } from "@/lib/auth";
+import Image from "next/image";
 
 const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
@@ -197,23 +198,38 @@ export default function AdminUserDetailPage() {
 
     if (loading) {
         return (
-            <main className="mx-auto flex min-h-screen max-w-5xl items-center px-6">
-                <p>Cargando detalle...</p>
+            <main className="flex min-h-screen items-center justify-center px-6">
+                <div className="rounded-2xl border border-white/70 bg-white/90 px-6 py-4 text-sm font-medium text-slate-600 shadow-lg shadow-slate-200/70">
+                    Cargando detalle...
+                </div>
             </main>
         );
     }
 
     return (
-        <main className="mx-auto min-h-screen max-w-5xl px-6 py-10">
-            <div className="mb-8 flex items-center justify-between">
-                <div>
-                    <p className="text-sm text-gray-500">Área de administración</p>
-                    <h1 className="text-3xl font-bold">Detalle de usuario</h1>
+        <main className="mx-auto min-h-screen max-w-5xl px-6 py-10 text-slate-900">
+            <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                    <Image
+                        src="/thesismatch-logo.jpeg"
+                        alt="Logo ThesisMatch"
+                        width={40}
+                        height={40}
+                        className="rounded-lg"
+                    />
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">
+                            Área de administración
+                        </p>
+                        <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+                            Detalle de usuario
+                        </h1>
+                    </div>
                 </div>
 
                 <button
                     onClick={logout}
-                    className="rounded-xl border px-4 py-2 font-medium transition hover:bg-gray-50"
+                    className="rounded-2xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-red-50 hover:text-red-600"
                 >
                     Cerrar sesión
                 </button>
@@ -226,7 +242,7 @@ export default function AdminUserDetailPage() {
             )}
 
             {userDetail && (
-                <div className="space-y-6 rounded-2xl border p-6 shadow-sm">
+                <div className="space-y-6 rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-xl shadow-slate-200/70">
                     <div className="space-y-2">
                         <p>
                             <strong>Nombre completo:</strong> {userDetail.fullName}
@@ -243,7 +259,7 @@ export default function AdminUserDetailPage() {
                     </div>
 
                     {userDetail.studentProfile && (
-                        <div className="space-y-2 rounded-xl border p-4">
+                        <div className="space-y-2 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
                             <h2 className="text-xl font-semibold">Perfil de estudiante</h2>
 
                             <p>
@@ -332,7 +348,7 @@ export default function AdminUserDetailPage() {
                                             (program) => (
                                                 <span
                                                     key={program}
-                                                    className="rounded-full border px-3 py-1 text-sm"
+                                                    className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700"
                                                 >
                                                     {program}
                                                 </span>
@@ -352,7 +368,7 @@ export default function AdminUserDetailPage() {
                                             (line) => (
                                                 <span
                                                     key={line}
-                                                    className="rounded-full border px-3 py-1 text-sm"
+                                                    className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700"
                                                 >
                                                     {line}
                                                 </span>
@@ -367,7 +383,7 @@ export default function AdminUserDetailPage() {
                     )}
 
                     {userDetail.professorProfile && (
-                        <div className="space-y-2 rounded-xl border p-4">
+                        <div className="space-y-2 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
                             <h2 className="text-xl font-semibold">Perfil de profesor</h2>
 
                             <p>
@@ -438,7 +454,7 @@ export default function AdminUserDetailPage() {
                                             (program) => (
                                                 <span
                                                     key={program}
-                                                    className="rounded-full border px-3 py-1 text-sm"
+                                                    className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700"
                                                 >
                                                     {program}
                                                 </span>
@@ -459,7 +475,7 @@ export default function AdminUserDetailPage() {
                                             (line) => (
                                                 <span
                                                     key={line}
-                                                    className="rounded-full border px-3 py-1 text-sm"
+                                                    className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700"
                                                 >
                                                     {line}
                                                 </span>
@@ -507,7 +523,7 @@ export default function AdminUserDetailPage() {
 
                     <button
                         onClick={() => router.push("/admin/dashboard")}
-                        className="rounded-xl border px-5 py-3 font-medium"
+                        className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                     >
                         Volver
                     </button>

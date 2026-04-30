@@ -12,6 +12,7 @@ import {
     updateSupervisedThesis,
 } from "@/lib/theses";
 import type { SupervisedThesis } from "@/types/professor";
+import Image from "next/image";
 
 /**
  * Response returned by the backend when retrieving the current professor profile.
@@ -620,20 +621,32 @@ export default function ProfessorProfileSetupPage() {
 
     if (loading) {
         return (
-            <main className="mx-auto flex min-h-screen max-w-4xl items-center px-6">
-                <p>Cargando formulario...</p>
+            <main className="flex min-h-screen items-center justify-center px-6">
+                <div className="rounded-2xl border border-white/70 bg-white/90 px-6 py-4 text-sm font-medium text-slate-600 shadow-lg shadow-slate-200/70">
+                    Cargando formulario...
+                </div>
             </main>
         );
     }
     return (
-        <main className="mx-auto min-h-screen max-w-5xl px-6 py-10">
-            <div className="mb-8">
-                <p className="text-sm text-gray-500">
-                    {isEditMode ? "Editar perfil de profesor" : "Registro de profesor"}
-                </p>
-                <h1 className="text-3xl font-bold">
-                    {isEditMode ? "Modifica tu perfil" : "Completa tu perfil"}
-                </h1>
+        <main className="mx-auto min-h-screen max-w-5xl px-6 py-10 text-slate-900">
+            <div className="mb-10 flex items-center gap-3">
+                <Image
+                    src="/thesismatch-logo.jpeg"
+                    alt="Logo ThesisMatch"
+                    width={40}
+                    height={40}
+                    className="rounded-lg"
+                />
+
+                <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">
+                        {isEditMode ? "Editar perfil de profesor" : "Registro de profesor"}
+                    </p>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+                        {isEditMode ? "Modifica tu perfil" : "Completa tu perfil"}
+                    </h1>
+                </div>
             </div>
 
             {error && (
@@ -642,7 +655,7 @@ export default function ProfessorProfileSetupPage() {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border p-6 shadow-sm">
+            <form onSubmit={handleSubmit} className="space-y-6 rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-xl shadow-slate-200/70">
                 <div className="grid gap-4 md:grid-cols-2">
                     <div>
                         <label className="mb-1 block text-sm font-medium">Nombre</label>
@@ -785,7 +798,7 @@ export default function ProfessorProfileSetupPage() {
                             <button
                                 type="button"
                                 onClick={addKeyword}
-                                className="rounded-xl border px-4 py-2"
+                                className="rounded-2xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-700/20 transition hover:bg-blue-800"
                             >
                                 Añadir
                             </button>
@@ -795,7 +808,7 @@ export default function ProfessorProfileSetupPage() {
                             {researchKeywords.map((keyword) => (
                                 <span
                                     key={keyword}
-                                    className="flex items-center gap-2 rounded-full border px-3 py-1 text-sm"
+                                    className="flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700"
                                 >
                                     {keyword}
                                     <button
@@ -921,7 +934,7 @@ export default function ProfessorProfileSetupPage() {
                                 <button
                                     type="button"
                                     onClick={saveThesisFromSetup}
-                                    className="rounded-xl border px-4 py-2 font-medium"
+                                    className="rounded-2xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-700/20 transition hover:bg-blue-800"
                                 >
                                     {editingThesisId !== null ? "Guardar cambios" : "Añadir tesis"}
                                 </button>
@@ -930,7 +943,7 @@ export default function ProfessorProfileSetupPage() {
                                     <button
                                         type="button"
                                         onClick={resetThesisForm}
-                                        className="rounded-xl border px-4 py-2 font-medium"
+                                        className="rounded-2xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-700/20 transition hover:bg-blue-800"
                                     >
                                         Cancelar edición
                                     </button>
@@ -1002,7 +1015,7 @@ export default function ProfessorProfileSetupPage() {
                     <button
                         type="button"
                         onClick={() => router.push(isEditMode ? "/professor/profile" : "/")}
-                        className="rounded-xl border px-5 py-3 font-medium"
+                        className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                     >
                         {isEditMode ? "Volver" : "Volver al inicio"}
                     </button>
@@ -1010,7 +1023,7 @@ export default function ProfessorProfileSetupPage() {
                     <button
                         type="submit"
                         disabled={saving || !isFormFilled}
-                        className="rounded-xl border px-5 py-3 font-medium disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-2xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {saving ? "Guardando..." : isEditMode ? "Guardar cambios" : "Guardar perfil"}
                     </button>

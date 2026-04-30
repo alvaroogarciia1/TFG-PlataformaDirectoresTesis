@@ -39,11 +39,18 @@ export default function DashboardPage() {
             router.replace("/professor/dashboard");
             return;
         }
+
+        if (user.role === "ADMIN") {
+            router.replace("/admin/dashboard");
+            return;
+        }
     }, [router]);
 
     return (
-        <main className="mx-auto flex min-h-screen max-w-4xl items-center px-6">
-            <p>Redirigiendo...</p>
+        <main className="flex min-h-screen items-center justify-center px-6">
+            <div className="rounded-2xl border border-white/70 bg-white/90 px-6 py-4 text-sm font-medium text-slate-600 shadow-lg shadow-slate-200/70">
+                Redirigiendo...
+            </div>
         </main>
     );
 }
