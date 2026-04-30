@@ -213,8 +213,8 @@ export default function AdminUserDetailPage() {
                     <Image
                         src="/thesismatch-logo.jpeg"
                         alt="Logo ThesisMatch"
-                        width={40}
-                        height={40}
+                        width={150}
+                        height={150}
                         className="rounded-lg"
                     />
                     <div>

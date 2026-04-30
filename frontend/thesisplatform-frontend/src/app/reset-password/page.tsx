@@ -116,8 +116,8 @@ export default function ResetPasswordPage() {
                     <Image
                         src="/thesismatch-logo.jpeg"
                         alt="Logo ThesisMatch"
-                        width={90}
-                        height={90}
+                        width={150}
+                        height={150}
                         className="rounded-2xl shadow-md"
                         priority
                     />

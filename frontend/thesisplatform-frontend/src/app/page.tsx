@@ -32,8 +32,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 <Image
                   src="/thesismatch-logo.jpeg"
                   alt="Logo ThesisMatch"
-                  width={150}
-                  height={150}
+                  width={220}
+                  height={220}
                   className="rounded-[2rem] shadow-lg shadow-blue-900/10"
                   priority
                 />

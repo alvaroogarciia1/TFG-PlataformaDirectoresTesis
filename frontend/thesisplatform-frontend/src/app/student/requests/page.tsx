@@ -139,8 +139,8 @@ export default function StudentRequestsPage() {
                     <Image
                         src="/thesismatch-logo.jpeg"
                         alt="Logo ThesisMatch"
-                        width={52}
-                        height={52}
+                        width={150}
+                        height={150}
                         className="hidden rounded-xl sm:block"
                     />
 

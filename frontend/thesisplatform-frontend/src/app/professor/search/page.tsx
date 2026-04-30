@@ -294,8 +294,8 @@ export default function ProfessorSearchPage() {
                         <Image
                             src="/thesismatch-logo.jpeg"
                             alt="Logo ThesisMatch"
-                            width={52}
-                            height={52}
+                            width={200}
+                            height={150}
                             className="hidden rounded-xl sm:block"
                         />
 
@@ -318,8 +318,8 @@ export default function ProfessorSearchPage() {
                 <button
                     onClick={() => setMode("manual")}
                     className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${mode === "manual"
-                            ? "bg-blue-700 text-white shadow-md shadow-blue-700/20"
-                            : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+                        ? "bg-blue-700 text-white shadow-md shadow-blue-700/20"
+                        : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
                         }`}
                 >
                     Búsqueda manual
@@ -328,8 +328,8 @@ export default function ProfessorSearchPage() {
                 <button
                     onClick={() => setMode("automatic")}
                     className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${mode === "automatic"
-                            ? "bg-blue-700 text-white shadow-md shadow-blue-700/20"
-                            : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+                        ? "bg-blue-700 text-white shadow-md shadow-blue-700/20"
+                        : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
                         }`}
                 >
                     Búsqueda automática
