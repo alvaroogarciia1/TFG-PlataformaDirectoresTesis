@@ -76,13 +76,13 @@ export default function ProfessorDashboardPage() {
 
                     <DashboardCard
                         title="Solicitudes"
-                        description="Gestiona las solicitudes recibidas de estudiantes."
+                        description="Gestiona y comprueba el estado de tus solicitudes."
                         onClick={() => router.push("/professor/requests")}
                     />
 
                     <DashboardCard
                         title="Búsqueda"
-                        description="Encuentra estudiantes compatibles según tus líneas de investigación."
+                        description="Encuentra estudiantes compatibles mediante búsqueda manual o automática."
                         onClick={() => router.push("/professor/search")}
                     />
                 </div>

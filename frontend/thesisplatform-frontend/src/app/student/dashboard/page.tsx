@@ -79,7 +79,7 @@ export default function StudentDashboardPage() {
 
                     <DashboardCard
                         title="Solicitudes"
-                        description="Consulta el estado de las solicitudes enviadas a profesores."
+                        description="Gestiona y comprueba el estado de tus solicitudes."
                         onClick={() => router.push("/student/requests")}
                     />
 

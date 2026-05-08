@@ -100,7 +100,7 @@ public class ThesisRequestService {
 
         if (alreadyPending) {
             throw new InvalidThesisRequestOperationException(
-                    "A pending thesis request to this professor already exists");
+                    "Ya existe una solicitud de tesis pendiente para este profesor");
         }
 
         ThesisRequest thesisRequest = ThesisRequest.builder()
@@ -164,7 +164,7 @@ public class ThesisRequestService {
 
         if (alreadyPending) {
             throw new InvalidThesisRequestOperationException(
-                    "A pending thesis request between this student and professor already exists");
+                    "Ya existe una solicitud de tesis pendiente para este estudiante");
         }
 
         ThesisRequest thesisRequest = ThesisRequest.builder()

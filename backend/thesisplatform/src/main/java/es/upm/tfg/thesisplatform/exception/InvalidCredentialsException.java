@@ -10,6 +10,6 @@ public class InvalidCredentialsException extends RuntimeException {
      * Creates the exception with the default invalid-credentials message.
      */
     public InvalidCredentialsException() {
-        super("Email or password is incorrect");
+        super("El correo o la contraseña introducidos son incorrectos");
     }
 }
