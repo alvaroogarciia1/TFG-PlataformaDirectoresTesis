@@ -237,6 +237,24 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles access denied errors produced when an authenticated user attempts
+     * to access a resource without the required permissions.
+     *
+     * @param ex thrown exception
+     * @return problem detail response with HTTP 403 status
+     */
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ProblemDetail handleAccessDeniedException(
+            org.springframework.security.access.AccessDeniedException ex) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
+        problemDetail.setTitle("Access denied");
+        problemDetail.setDetail("You do not have permission to access this resource.");
+
+        return problemDetail;
+    }
+
+    /**
      * Handles unexpected exceptions not covered by more specific handlers.
      *
      * <p>
