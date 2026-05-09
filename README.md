@@ -332,13 +332,6 @@ Universidad Politécnica de Madrid (UPM)
 
 ---
 
-# Tutores
-
-- Alejandro Rodríguez González
-- Lucía Prieto Santamaría
-
----
-
 # Licencia
 
 Proyecto desarrollado con fines académicos como Trabajo Fin de Grado.
