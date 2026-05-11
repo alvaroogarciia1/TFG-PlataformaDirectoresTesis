@@ -110,11 +110,16 @@ export async function acceptRequest(id: number): Promise<ThesisRequest> {
  * Rejects a thesis request.
  *
  * @param id - Identifier of the request to reject.
+ * @param rejectionReason - Reason provided when the request was rejected.
  * @returns Updated thesis request returned by the backend.
  */
-export async function rejectRequest(id: number): Promise<ThesisRequest> {
+export async function rejectRequest(
+    id: number,
+    rejectionReason: string
+): Promise<ThesisRequest> {
     return apiFetch<ThesisRequest>(`/requests/${id}/reject`, {
         method: "PATCH",
+        body: JSON.stringify({ rejectionReason }),
     });
 }
 

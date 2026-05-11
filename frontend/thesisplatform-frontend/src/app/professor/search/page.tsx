@@ -46,9 +46,11 @@ export default function ProfessorSearchPage() {
     const [showRelocationFilter, setShowRelocationFilter] = useState(false);
     const [showInstitutionFilter, setShowInstitutionFilter] = useState(false);
 
-    const [selectedResearchLineId, setSelectedResearchLineId] = useState("");
+    const [researchLineQuery, setResearchLineQuery] = useState("");
+    const [selectedResearchLineIds, setSelectedResearchLineIds] = useState<number[]>([]);
     const [selectedDoctoralProgramId, setSelectedDoctoralProgramId] = useState("");
     const [originInstitution, setOriginInstitution] = useState("");
+    const [institutionSuggestionOpen, setInstitutionSuggestionOpen] = useState(false);
     const [hasFunding, setHasFunding] = useState("any");
     const [dedicationType, setDedicationType] = useState("any");
     const [willingToRelocate, setWillingToRelocate] = useState("any");
@@ -110,7 +112,7 @@ export default function ProfessorSearchPage() {
 
     const manualHasFilters = useMemo(() => {
         return (
-            (showResearchLineFilter && selectedResearchLineId !== "") ||
+            (showResearchLineFilter && selectedResearchLineIds.length > 0) ||
             (showDoctoralProgramFilter && selectedDoctoralProgramId !== "") ||
             (showFundingFilter && hasFunding !== "any") ||
             (showDedicationFilter && dedicationType !== "any") ||
@@ -119,7 +121,7 @@ export default function ProfessorSearchPage() {
         );
     }, [
         showResearchLineFilter,
-        selectedResearchLineId,
+        selectedResearchLineIds,
         showDoctoralProgramFilter,
         selectedDoctoralProgramId,
         showFundingFilter,
@@ -144,6 +146,30 @@ export default function ProfessorSearchPage() {
         );
     }, [manualBaseResults, name]);
 
+    const filteredResearchLines = useMemo(() => {
+        const query = researchLineQuery.trim().toLowerCase();
+
+        if (!query) {
+            return [];
+        }
+
+        return researchLines
+            .filter((line) => !selectedResearchLineIds.includes(line.id))
+            .filter((line) => line.name.toLowerCase().includes(query))
+            .slice(0, 8);
+    }, [researchLineQuery, researchLines, selectedResearchLineIds]);
+
+    function addResearchLine(line: ResearchLine) {
+        setSelectedResearchLineIds((current) => [...current, line.id]);
+        setResearchLineQuery("");
+    }
+
+    function removeResearchLine(lineId: number) {
+        setSelectedResearchLineIds((current) =>
+            current.filter((id) => id !== lineId)
+        );
+    }
+
     async function handleManualSearch() {
         setLoading(true);
         setError("");
@@ -156,8 +182,8 @@ export default function ProfessorSearchPage() {
 
             const data = await searchStudentsAdvanced({
                 researchLineIds:
-                    showResearchLineFilter && selectedResearchLineId
-                        ? [Number(selectedResearchLineId)]
+                    showResearchLineFilter && selectedResearchLineIds.length > 0
+                        ? selectedResearchLineIds
                         : undefined,
                 doctoralProgramIds:
                     showDoctoralProgramFilter && selectedDoctoralProgramId
@@ -187,6 +213,30 @@ export default function ProfessorSearchPage() {
             setLoading(false);
         }
     }
+
+    const filteredInstitutions = useMemo(() => {
+        if (!institutionSuggestionOpen) {
+            return [];
+        }
+
+        const query = originInstitution.trim().toLowerCase();
+
+        if (!query) {
+            return [];
+        }
+
+        const institutions = Array.from(
+            new Set(
+                allStudents
+                    .map((student) => student.originInstitution)
+                    .filter((value): value is string => Boolean(value && value.trim()))
+            )
+        );
+
+        return institutions
+            .filter((value) => value.toLowerCase().includes(query))
+            .slice(0, 8);
+    }, [originInstitution, allStudents, institutionSuggestionOpen]);
 
     async function handleAutomaticSearch() {
         setLoading(true);
@@ -240,7 +290,8 @@ export default function ProfessorSearchPage() {
 
     function clearManualFilters() {
         setName("");
-        setSelectedResearchLineId("");
+        setSelectedResearchLineIds([]);
+        setResearchLineQuery("");
         setSelectedDoctoralProgramId("");
         setHasFunding("any");
         setDedicationType("any");
@@ -337,23 +388,23 @@ export default function ProfessorSearchPage() {
             </div>
 
             {error && (
-                <div className="mb-6 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-red-700">
+                <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-700 shadow-sm">
                     {error}
                 </div>
             )}
 
             {mode === "manual" && (
                 <>
-                    <section className="mb-8 rounded-[2rem] border border-gray-300 bg-white p-6 md:p-8">
+                    <section className="mb-8 rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-xl shadow-slate-200/70 backdrop-blur md:p-8">
                         <input
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Buscar nombre de estudiante"
-                            className="mb-6 w-full rounded-3xl border border-gray-300 bg-white px-6 py-4 text-lg text-gray-900 outline-none placeholder:text-gray-400"
+                            className="mb-6 w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                         />
 
                         <div className="mb-5 grid gap-3 md:grid-cols-2">
-                            <label className="flex items-center gap-3 text-[16px] font-medium text-gray-900">
+                            <label className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
                                 <input
                                     type="checkbox"
                                     checked={showResearchLineFilter}
@@ -363,7 +414,7 @@ export default function ProfessorSearchPage() {
                                 Línea de investigación
                             </label>
 
-                            <label className="flex items-center gap-3 text-[16px] font-medium text-gray-900">
+                            <label className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
                                 <input
                                     type="checkbox"
                                     checked={showDoctoralProgramFilter}
@@ -373,7 +424,7 @@ export default function ProfessorSearchPage() {
                                 Programa de doctorado
                             </label>
 
-                            <label className="flex items-center gap-3 text-[16px] font-medium text-gray-900">
+                            <label className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
                                 <input
                                     type="checkbox"
                                     checked={showFundingFilter}
@@ -383,7 +434,7 @@ export default function ProfessorSearchPage() {
                                 Financiación
                             </label>
 
-                            <label className="flex items-center gap-3 text-[16px] font-medium text-gray-900">
+                            <label className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
                                 <input
                                     type="checkbox"
                                     checked={showDedicationFilter}
@@ -393,7 +444,7 @@ export default function ProfessorSearchPage() {
                                 Dedicación
                             </label>
 
-                            <label className="flex items-center gap-3 text-[16px] font-medium text-gray-900">
+                            <label className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
                                 <input
                                     type="checkbox"
                                     checked={showRelocationFilter}
@@ -403,7 +454,7 @@ export default function ProfessorSearchPage() {
                                 Traslado a Madrid
                             </label>
 
-                            <label className="flex items-center gap-3 text-[16px] font-medium text-gray-900">
+                            <label className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
                                 <input
                                     type="checkbox"
                                     checked={showInstitutionFilter}
@@ -416,26 +467,65 @@ export default function ProfessorSearchPage() {
 
                         <div className="grid gap-4 md:grid-cols-2">
                             {showResearchLineFilter && (
-                                <select
-                                    value={selectedResearchLineId}
-                                    onChange={(e) => setSelectedResearchLineId(e.target.value)}
-                                    className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-[16px] text-gray-900"
-                                    disabled={catalogLoading}
-                                >
-                                    <option value="">Seleccione una línea</option>
-                                    {researchLines.map((line) => (
-                                        <option key={line.id} value={line.id}>
-                                            {line.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="relative">
+                                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100">
+                                        <div className="mb-2 flex flex-wrap gap-2">
+                                            {selectedResearchLineIds.map((id) => {
+                                                const line = researchLines.find((item) => item.id === id);
+
+                                                if (!line) {
+                                                    return null;
+                                                }
+
+                                                return (
+                                                    <span
+                                                        key={id}
+                                                        className="flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700"
+                                                    >
+                                                        {line.name}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeResearchLine(id)}
+                                                            className="text-blue-500 hover:text-blue-800"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
+
+                                        <input
+                                            value={researchLineQuery}
+                                            onChange={(e) => setResearchLineQuery(e.target.value)}
+                                            placeholder="Escribe una línea de investigación..."
+                                            className="w-full border-0 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                                            disabled={catalogLoading}
+                                        />
+                                    </div>
+
+                                    {filteredResearchLines.length > 0 && (
+                                        <div className="absolute z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+                                            {filteredResearchLines.map((line) => (
+                                                <button
+                                                    key={line.id}
+                                                    type="button"
+                                                    onClick={() => addResearchLine(line)}
+                                                    className="block w-full rounded-xl px-4 py-2 text-left text-sm text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
+                                                >
+                                                    {line.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             )}
 
                             {showDoctoralProgramFilter && (
                                 <select
                                     value={selectedDoctoralProgramId}
                                     onChange={(e) => setSelectedDoctoralProgramId(e.target.value)}
-                                    className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-[16px] text-gray-900"
+                                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                                     disabled={catalogLoading}
                                 >
                                     <option value="">Seleccione un programa</option>
@@ -451,7 +541,7 @@ export default function ProfessorSearchPage() {
                                 <select
                                     value={hasFunding}
                                     onChange={(e) => setHasFunding(e.target.value)}
-                                    className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-[16px] text-gray-900"
+                                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                                 >
                                     <option value="any">Cualquiera</option>
                                     <option value="true">Con financiación</option>
@@ -463,7 +553,7 @@ export default function ProfessorSearchPage() {
                                 <select
                                     value={dedicationType}
                                     onChange={(e) => setDedicationType(e.target.value)}
-                                    className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-[16px] text-gray-900"
+                                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                                 >
                                     <option value="any">Cualquiera</option>
                                     <option value="FULL_TIME">Tiempo completo</option>
@@ -475,7 +565,7 @@ export default function ProfessorSearchPage() {
                                 <select
                                     value={willingToRelocate}
                                     onChange={(e) => setWillingToRelocate(e.target.value)}
-                                    className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-[16px] text-gray-900"
+                                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                                 >
                                     <option value="any">Cualquiera</option>
                                     <option value="true">Sí</option>
@@ -484,12 +574,42 @@ export default function ProfessorSearchPage() {
                             )}
 
                             {showInstitutionFilter && (
-                                <input
-                                    value={originInstitution}
-                                    onChange={(e) => setOriginInstitution(e.target.value)}
-                                    placeholder="Institución de origen"
-                                    className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-[16px] text-gray-900 placeholder:text-gray-400"
-                                />
+                                <div className="relative">
+                                    <input
+                                        value={originInstitution}
+                                        onChange={(e) => {
+                                            setOriginInstitution(e.target.value);
+                                            setInstitutionSuggestionOpen(true);
+                                        }}
+                                        onFocus={() => {
+                                            if (originInstitution.trim()) {
+                                                setInstitutionSuggestionOpen(true);
+                                            }
+                                        }}
+                                        onBlur={() => setInstitutionSuggestionOpen(false)}
+                                        placeholder="Escribe una institución..."
+                                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                    />
+
+                                    {filteredInstitutions.length > 0 && (
+                                        <div className="absolute z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+                                            {filteredInstitutions.map((value) => (
+                                                <button
+                                                    key={value}
+                                                    type="button"
+                                                    onMouseDown={(e) => {
+                                                        e.preventDefault();
+                                                        setOriginInstitution(value);
+                                                        setInstitutionSuggestionOpen(false);
+                                                    }}
+                                                    className="block w-full rounded-xl px-4 py-2 text-left text-sm text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
+                                                >
+                                                    {value}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </div>
 
@@ -497,31 +617,31 @@ export default function ProfessorSearchPage() {
                             <button
                                 onClick={handleManualSearch}
                                 disabled={loading}
-                                className="rounded-2xl border border-gray-300 bg-white px-8 py-3 text-lg font-medium text-gray-900 transition hover:bg-gray-100 disabled:opacity-50"
+                                className="rounded-2xl bg-blue-700 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {loading ? "Buscando..." : "Buscar"}
                             </button>
 
                             <button
                                 onClick={clearManualFilters}
-                                className="rounded-2xl border border-gray-400 px-6 py-3 text-lg font-medium text-gray-900 transition hover:bg-gray-100"
+                                className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                             >
                                 Limpiar
                             </button>
                         </div>
                     </section>
 
-                    <section className="overflow-hidden rounded-[2rem] border border-gray-300 bg-white">
+                    <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 shadow-xl shadow-slate-200/70">
                         <table className="w-full border-collapse">
                             <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
+                                <tr className="bg-slate-50">
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">
                                         Nombre y apellidos estudiante
                                     </th>
-                                    <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">
                                         Perfil estudiante
                                     </th>
-                                    <th className="border-b border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">
                                         ¿Desea enviar solicitud al estudiante?
                                     </th>
                                 </tr>
@@ -529,25 +649,25 @@ export default function ProfessorSearchPage() {
                             <tbody>
                                 {manualResults.length === 0 ? (
                                     <tr>
-                                        <td colSpan={3} className="px-4 py-16 text-center text-lg text-gray-500">
+                                        <td colSpan={3} className="px-5 py-16 text-center text-sm text-slate-500">
                                             No hay estudiantes que coincidan con los filtros seleccionados.
                                         </td>
                                     </tr>
                                 ) : (
                                     manualResults.map((student) => (
-                                        <tr key={student.id} className="border-t border-gray-300">
-                                            <td className="border-r border-gray-300 px-4 py-5 text-lg">
+                                        <tr key={student.id} className="border-t border-slate-100 transition hover:bg-blue-50/40">
+                                            <td className="px-5 py-5 text-sm font-medium text-slate-900">
                                                 {student.firstName} {student.lastName}
                                             </td>
-                                            <td className="border-r border-gray-300 px-4 py-5">
+                                            <td className="px-5 py-5">
                                                 <button
                                                     onClick={() => setSelectedStudent(student)}
-                                                    className="rounded-xl border border-gray-400 px-5 py-2 text-gray-900 transition hover:bg-gray-100"
+                                                    className="rounded-xl border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                                                 >
                                                     Perfil
                                                 </button>
                                             </td>
-                                            <td className="px-4 py-5">
+                                            <td className="px-5 py-5">
                                                 <button
                                                     onClick={() =>
                                                         openRequestModal(
@@ -555,7 +675,7 @@ export default function ProfessorSearchPage() {
                                                             `${student.firstName} ${student.lastName}`
                                                         )
                                                     }
-                                                    className="rounded-xl border border-gray-400 px-5 py-2 text-gray-900 transition hover:bg-gray-100"
+                                                    className="rounded-xl bg-blue-700 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-blue-700/20 transition hover:bg-blue-800"
                                                 >
                                                     Enviar
                                                 </button>
@@ -571,33 +691,33 @@ export default function ProfessorSearchPage() {
 
             {mode === "automatic" && (
                 <>
-                    <section className="mb-6">
+                    <section className="mb-6 rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-xl shadow-slate-200/70">
                         <button
                             onClick={handleAutomaticSearch}
                             disabled={loading}
-                            className="rounded-2xl border border-gray-300 bg-white px-8 py-3 text-lg font-medium text-gray-900 transition hover:bg-gray-100 disabled:opacity-50"
+                            className="rounded-2xl bg-blue-700 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {loading ? "Cargando matches..." : "Cargar matches automáticos"}
                         </button>
                     </section>
 
-                    <section className="overflow-hidden rounded-[2rem] border border-gray-300 bg-white">
+                    <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 shadow-xl shadow-slate-200/70">
                         <table className="w-full border-collapse">
                             <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
+                                <tr className="bg-slate-50">
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">
                                         Estudiante
                                     </th>
-                                    <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">
                                         Compatibilidad
                                     </th>
-                                    <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">
                                         Detalle
                                     </th>
-                                    <th className="border-b border-r border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">
                                         Perfil
                                     </th>
-                                    <th className="border-b border-gray-300 px-4 py-5 text-left text-lg font-semibold text-gray-900">
+                                    <th className="border-b border-slate-200 px-5 py-4 text-left text-sm font-bold text-slate-700">
                                         Solicitud
                                     </th>
                                 </tr>
@@ -605,39 +725,41 @@ export default function ProfessorSearchPage() {
                             <tbody>
                                 {matchResults.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="px-4 py-16 text-center text-lg text-gray-500">
+                                        <td colSpan={5} className="px-5 py-16 text-center text-sm text-slate-500">
                                             No hay resultados automáticos cargados.
                                         </td>
                                     </tr>
                                 ) : (
                                     matchResults.map((student) => (
-                                        <tr key={student.userId} className="border-t border-gray-300">
-                                            <td className="border-r border-gray-300 px-4 py-5 text-lg">
+                                        <tr key={student.userId} className="border-t border-slate-100 transition hover:bg-blue-50/40">
+                                            <td className="px-5 py-5 text-sm font-medium text-slate-900">
                                                 {student.fullName}
                                             </td>
-                                            <td className="border-r border-gray-300 px-4 py-5 text-lg">
-                                                {Math.round(student.totalScore)}%
+                                            <td className="px-5 py-5">
+                                                <span className="rounded-full bg-blue-50 px-4 py-2 text-sm font-bold text-blue-700">
+                                                    {Math.round(student.totalScore)}%
+                                                </span>
                                             </td>
-                                            <td className="border-r border-gray-300 px-4 py-5">
+                                            <td className="px-5 py-5">
                                                 <button
                                                     onClick={() => setSelectedMatch(student)}
-                                                    className="rounded-xl border border-gray-400 px-4 py-2 text-gray-900 transition hover:bg-gray-100"
+                                                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                                                 >
                                                     Ver detalle
                                                 </button>
                                             </td>
-                                            <td className="border-r border-gray-300 px-4 py-5">
+                                            <td className="px-5 py-5">
                                                 <button
                                                     onClick={() => openStudentProfile(student)}
-                                                    className="rounded-xl border border-gray-400 px-5 py-2 text-gray-900 transition hover:bg-gray-100"
+                                                    className="rounded-xl border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                                                 >
                                                     Perfil
                                                 </button>
                                             </td>
-                                            <td className="px-4 py-5">
+                                            <td className="px-5 py-5">
                                                 <button
                                                     onClick={() => openRequestModal(student.userId, student.fullName)}
-                                                    className="rounded-xl border border-gray-400 px-5 py-2 text-gray-900 transition hover:bg-gray-100"
+                                                    className="rounded-xl bg-blue-700 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-blue-700/20 transition hover:bg-blue-800"
                                                 >
                                                     Enviar
                                                 </button>

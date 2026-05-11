@@ -67,6 +67,11 @@ export interface ThesisRequest {
     message: string;
 
     /**
+ * Reason provided when the request was rejected.
+ */
+    rejectionReason?: string | null;
+
+    /**
      * Current state of the request within its lifecycle.
      */
     status: ThesisRequestStatus;

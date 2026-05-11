@@ -67,6 +67,11 @@ public class ThesisRequestResponse {
     private String message;
 
     /**
+ * Reason provided when the request is rejected.
+ */
+private String rejectionReason;
+
+    /**
      * Current status of the request.
      */
     private ThesisRequestStatus status;

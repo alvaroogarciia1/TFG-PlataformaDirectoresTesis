@@ -51,6 +51,9 @@ export default function ProfessorRequestsPage() {
     const [received, setReceived] = useState<ThesisRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedRequest, setSelectedRequest] = useState<RequestWithDirection | null>(null);
+    const [rejectingRequest, setRejectingRequest] = useState<RequestWithDirection | null>(null);
+    const [rejectionReason, setRejectionReason] = useState("");
+    const [rejecting, setRejecting] = useState(false);
 
     /**
      * Loads sent and received requests in parallel and updates the page state.
@@ -108,10 +111,28 @@ export default function ProfessorRequestsPage() {
      *
      * @param id - Identifier of the request to reject.
      */
-    async function handleReject(id: number) {
-        await rejectRequest(id);
-        await loadData();
-        setSelectedRequest(null);
+    function openRejectModal(request: RequestWithDirection) {
+        setRejectingRequest(request);
+        setRejectionReason("");
+    }
+    async function handleReject() {
+        if (!rejectingRequest || !rejectionReason.trim()) {
+            return;
+        }
+
+        setRejecting(true);
+
+        try {
+            await rejectRequest(rejectingRequest.id, rejectionReason.trim());
+            await loadData();
+            setSelectedRequest(null);
+            setRejectingRequest(null);
+            setRejectionReason("");
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setRejecting(false);
+        }
     }
 
     /**
@@ -242,6 +263,9 @@ export default function ProfessorRequestsPage() {
                             <p><b>Asunto:</b> {selectedRequest.subject}</p>
                             <p><b>Estado:</b> {formatStatus(selectedRequest.status)}</p>
                             <p><b>Mensaje:</b> {selectedRequest.message}</p>
+                            {selectedRequest.rejectionReason && (
+                                <p><b>Motivo del rechazo:</b> {selectedRequest.rejectionReason}</p>
+                            )}
                             <p><b>Fecha:</b> {new Date(selectedRequest.createdAt).toLocaleString()}</p>
                         </div>
 
@@ -255,7 +279,7 @@ export default function ProfessorRequestsPage() {
                                         Aceptar
                                     </button>
                                     <button
-                                        onClick={() => handleReject(selectedRequest.id)}
+                                        onClick={() => openRejectModal(selectedRequest)}
                                         className="rounded-xl border border-white px-5 py-2 text-white transition hover:bg-white/10"
                                     >
                                         Rechazar
@@ -271,6 +295,59 @@ export default function ProfessorRequestsPage() {
                                     Cancelar
                                 </button>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {rejectingRequest && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 px-4">
+                    <div className="w-full max-w-2xl rounded-[2rem] border border-white bg-black p-6 shadow-2xl">
+                        <div className="mb-4 flex items-center justify-between">
+                            <h2 className="text-2xl font-bold text-white">
+                                Motivo del rechazo
+                            </h2>
+                            <button
+                                onClick={() => {
+                                    setRejectingRequest(null);
+                                    setRejectionReason("");
+                                }}
+                                className="rounded-xl border border-white px-4 py-2 text-white transition hover:bg-white/10"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+
+                        <p className="mb-4 text-gray-300">
+                            Este motivo se enviará por correo a la otra persona y quedará asociado a la solicitud.
+                        </p>
+
+                        <textarea
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            placeholder="Explica brevemente el motivo del rechazo..."
+                            rows={6}
+                            className="w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-white outline-none placeholder:text-gray-400"
+                        />
+
+                        <div className="mt-6 flex flex-wrap gap-3">
+                            <button
+                                onClick={handleReject}
+                                disabled={rejecting || !rejectionReason.trim()}
+                                className="rounded-xl border border-white bg-white px-5 py-2 text-black transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {rejecting ? "Rechazando..." : "Confirmar rechazo"}
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    setRejectingRequest(null);
+                                    setRejectionReason("");
+                                }}
+                                className="rounded-xl border border-white px-5 py-2 text-white transition hover:bg-white/10"
+                            >
+                                Cancelar
+                            </button>
                         </div>
                     </div>
                 </div>

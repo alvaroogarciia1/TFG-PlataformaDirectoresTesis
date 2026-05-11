@@ -57,9 +57,11 @@ export default function StudentSearchPage() {
     const [showAvailabilityFilter, setShowAvailabilityFilter] = useState(false);
     const [showInstitutionFilter, setShowInstitutionFilter] = useState(false);
 
-    const [selectedResearchLineId, setSelectedResearchLineId] = useState("");
+    const [researchLineQuery, setResearchLineQuery] = useState("");
+    const [selectedResearchLineIds, setSelectedResearchLineIds] = useState<number[]>([]);
     const [selectedDoctoralProgramId, setSelectedDoctoralProgramId] = useState("");
     const [institution, setInstitution] = useState("");
+    const [institutionSuggestionOpen, setInstitutionSuggestionOpen] = useState(false);
     const [availableToSupervise, setAvailableToSupervise] = useState("any");
 
     const [allProfessors, setAllProfessors] = useState<ProfessorProfile[]>([]);
@@ -128,14 +130,14 @@ export default function StudentSearchPage() {
      */
     const manualHasFilters = useMemo(() => {
         return (
-            (showResearchLineFilter && selectedResearchLineId !== "") ||
+            (showResearchLineFilter && selectedResearchLineIds.length > 0) ||
             (showDoctoralProgramFilter && selectedDoctoralProgramId !== "") ||
             (showInstitutionFilter && institution.trim() !== "") ||
             (showAvailabilityFilter && availableToSupervise !== "any")
         );
     }, [
         showResearchLineFilter,
-        selectedResearchLineId,
+        selectedResearchLineIds,
         showDoctoralProgramFilter,
         selectedDoctoralProgramId,
         showInstitutionFilter,
@@ -143,6 +145,30 @@ export default function StudentSearchPage() {
         showAvailabilityFilter,
         availableToSupervise,
     ]);
+
+    const filteredResearchLines = useMemo(() => {
+        const query = researchLineQuery.trim().toLowerCase();
+
+        if (!query) {
+            return [];
+        }
+
+        return researchLines
+            .filter((line) => !selectedResearchLineIds.includes(line.id))
+            .filter((line) => line.name.toLowerCase().includes(query))
+            .slice(0, 8);
+    }, [researchLineQuery, researchLines, selectedResearchLineIds]);
+
+    function addResearchLine(line: ResearchLine) {
+        setSelectedResearchLineIds((current) => [...current, line.id]);
+        setResearchLineQuery("");
+    }
+
+    function removeResearchLine(lineId: number) {
+        setSelectedResearchLineIds((current) =>
+            current.filter((id) => id !== lineId)
+        );
+    }
 
     /**
      * Applies the free-text professor name filter over the current manual result set.
@@ -159,6 +185,30 @@ export default function StudentSearchPage() {
         );
     }, [manualBaseResults, name]);
 
+    const filteredInstitutions = useMemo(() => {
+        if (!institutionSuggestionOpen) {
+            return [];
+        }
+
+        const query = institution.trim().toLowerCase();
+
+        if (!query) {
+            return [];
+        }
+
+        const institutions = Array.from(
+            new Set(
+                allProfessors
+                    .map((prof) => prof.institution)
+                    .filter((value): value is string => Boolean(value && value.trim()))
+            )
+        );
+
+        return institutions
+            .filter((value) => value.toLowerCase().includes(query))
+            .slice(0, 8);
+    }, [institution, allProfessors, institutionSuggestionOpen]);
+
     /**
      * Runs the manual search using the selected structured filters.
      */
@@ -174,8 +224,8 @@ export default function StudentSearchPage() {
 
             const data = await searchProfessorsAdvanced({
                 researchLineIds:
-                    showResearchLineFilter && selectedResearchLineId
-                        ? [Number(selectedResearchLineId)]
+                    showResearchLineFilter && selectedResearchLineIds.length > 0
+                        ? selectedResearchLineIds
                         : undefined,
                 doctoralProgramIds:
                     showDoctoralProgramFilter && selectedDoctoralProgramId
@@ -264,7 +314,8 @@ export default function StudentSearchPage() {
      */
     function clearManualFilters() {
         setName("");
-        setSelectedResearchLineId("");
+        setSelectedResearchLineIds([]);
+        setResearchLineQuery("");
         setSelectedDoctoralProgramId("");
         setInstitution("");
         setAvailableToSupervise("any");
@@ -401,12 +452,58 @@ export default function StudentSearchPage() {
 
                         <div className="grid gap-4 md:grid-cols-2">
                             {showResearchLineFilter && (
-                                <select value={selectedResearchLineId} onChange={(e) => setSelectedResearchLineId(e.target.value)} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" disabled={catalogLoading}>
-                                    <option value="">Seleccione una línea</option>
-                                    {researchLines.map((line) => (
-                                        <option key={line.id} value={line.id}>{line.name}</option>
-                                    ))}
-                                </select>
+                                <div className="relative">
+                                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100">
+                                        <div className="mb-2 flex flex-wrap gap-2">
+                                            {selectedResearchLineIds.map((id) => {
+                                                const line = researchLines.find((item) => item.id === id);
+
+                                                if (!line) {
+                                                    return null;
+                                                }
+
+                                                return (
+                                                    <span
+                                                        key={id}
+                                                        className="flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700"
+                                                    >
+                                                        {line.name}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeResearchLine(id)}
+                                                            className="text-blue-500 hover:text-blue-800"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
+
+                                        <input
+                                            value={researchLineQuery}
+                                            onChange={(e) => setResearchLineQuery(e.target.value)}
+                                            placeholder="Escribe una línea de investigación..."
+                                            className="w-full border-0 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                                            disabled={catalogLoading}
+                                        />
+                                    </div>
+
+                                    {filteredResearchLines.length > 0 && (
+                                        <div className="absolute z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+                                            {filteredResearchLines.map((line) => (
+                                                <button
+                                                    key={line.id}
+                                                    type="button"
+                                                    onClick={() => addResearchLine(line)}
+                                                    className="block w-full rounded-xl px-4 py-2 text-left text-sm text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
+                                                >
+                                                    {line.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             )}
 
                             {showDoctoralProgramFilter && (
@@ -427,7 +524,42 @@ export default function StudentSearchPage() {
                             )}
 
                             {showInstitutionFilter && (
-                                <input value={institution} onChange={(e) => setInstitution(e.target.value)} placeholder="Institución" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
+                                <div className="relative">
+                                    <input
+                                        value={institution}
+                                        onChange={(e) => {
+                                            setInstitution(e.target.value);
+                                            setInstitutionSuggestionOpen(true);
+                                        }}
+                                        onFocus={() => {
+                                            if (institution.trim()) {
+                                                setInstitutionSuggestionOpen(true);
+                                            }
+                                        }}
+                                        onBlur={() => setInstitutionSuggestionOpen(false)}
+                                        placeholder="Escribe una institución..."
+                                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                    />
+
+                                    {filteredInstitutions.length > 0 && (
+                                        <div className="absolute z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+                                            {filteredInstitutions.map((value) => (
+                                                <button
+                                                    key={value}
+                                                    type="button"
+                                                    onMouseDown={(e) => {
+                                                        e.preventDefault();
+                                                        setInstitution(value);
+                                                        setInstitutionSuggestionOpen(false);
+                                                    }}
+                                                    className="block w-full rounded-xl px-4 py-2 text-left text-sm text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
+                                                >
+                                                    {value}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </div>
 

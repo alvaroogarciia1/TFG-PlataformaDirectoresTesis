@@ -316,13 +316,14 @@ public class ThesisRequestService {
      *
      * @param currentUserEmail email of the authenticated user
      * @param requestId        identifier of the request to reject
+     * @param rejectionReason  the reason why the request was rejected
      * @return updated thesis request response
      * @throws ThesisRequestNotFoundException         if the request does not exist
      * @throws InvalidThesisRequestOperationException if the request is not pending
      * @throws ForbiddenOperationException            if the authenticated user is
      *                                                not allowed to reject it
      */
-    public ThesisRequestResponse rejectRequest(String currentUserEmail, Long requestId) {
+    public ThesisRequestResponse rejectRequest(String currentUserEmail, Long requestId, String rejectionReason) {
         ThesisRequest thesisRequest = thesisRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ThesisRequestNotFoundException(requestId));
 
@@ -340,7 +341,15 @@ public class ThesisRequestService {
             }
         }
 
+        String normalizedReason = rejectionReason == null ? "" : rejectionReason.trim();
+
+        if (normalizedReason.isEmpty()) {
+            throw new InvalidThesisRequestOperationException("Rejection reason is required");
+        }
+
         thesisRequest.setStatus(ThesisRequestStatus.REJECTED);
+        thesisRequest.setRejectionReason(normalizedReason);
+
         ThesisRequest saved = thesisRequestRepository.save(thesisRequest);
 
         String recipientEmail = thesisRequest.getInitiator() == RequestInitiator.STUDENT
@@ -349,6 +358,7 @@ public class ThesisRequestService {
 
         String subject = "Solicitud de tesis rechazada";
         String body = "La solicitud de tesis con asunto \"" + saved.getSubject() + "\" ha sido rechazada.\n\n" +
+                "Motivo del rechazo:\n" + saved.getRejectionReason() + "\n\n" +
                 "Puedes revisar el estado actualizado en la plataforma.";
 
         emailService.sendGenericEmail(recipientEmail, subject, body);
@@ -439,6 +449,7 @@ public class ThesisRequestService {
                 .professorFullName(professorFullName)
                 .subject(thesisRequest.getSubject())
                 .message(thesisRequest.getMessage())
+                .rejectionReason(thesisRequest.getRejectionReason())
                 .status(thesisRequest.getStatus())
                 .initiator(thesisRequest.getInitiator())
                 .createdAt(thesisRequest.getCreatedAt())

@@ -2,6 +2,7 @@ package es.upm.tfg.thesisplatform.thesisrequest.controller;
 
 import es.upm.tfg.thesisplatform.thesisrequest.dto.CreateThesisRequestRequest;
 import es.upm.tfg.thesisplatform.thesisrequest.dto.ProfessorThesisRequestCreate;
+import es.upm.tfg.thesisplatform.thesisrequest.dto.RejectThesisRequestRequest;
 import es.upm.tfg.thesisplatform.thesisrequest.dto.ThesisRequestResponse;
 import es.upm.tfg.thesisplatform.thesisrequest.service.ThesisRequestService;
 import jakarta.validation.Valid;
@@ -114,12 +115,16 @@ public class ThesisRequestController {
      * @return updated thesis request response
      */
     @PreAuthorize("hasAnyRole('STUDENT', 'PROFESSOR')")
-    @PatchMapping("/{id}/reject")
-    public ThesisRequestResponse rejectRequest(
-            Authentication authentication,
-            @PathVariable Long id) {
-        return thesisRequestService.rejectRequest(authentication.getName(), id);
-    }
+@PatchMapping("/{id}/reject")
+public ThesisRequestResponse rejectRequest(
+        Authentication authentication,
+        @PathVariable Long id,
+        @Valid @RequestBody RejectThesisRequestRequest request) {
+    return thesisRequestService.rejectRequest(
+            authentication.getName(),
+            id,
+            request.getRejectionReason());
+}
 
     /**
      * Cancels a sent thesis request.

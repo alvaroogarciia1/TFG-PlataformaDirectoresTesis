@@ -59,6 +59,12 @@ public class ThesisRequest {
     private String message;
 
     /**
+ * Reason provided when the request is rejected.
+ */
+@Column(name = "rejection_reason", columnDefinition = "TEXT")
+private String rejectionReason;
+
+    /**
      * Current status of the request.
      */
     @Enumerated(EnumType.STRING)
