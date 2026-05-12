@@ -22,6 +22,13 @@ type AdminUserSearchRequest = {
     active: boolean | null;
 };
 
+type SystemConfiguration = {
+    backendBaseUrl: string;
+    frontendBaseUrl: string;
+    resetPasswordUrl: string;
+    mailFrom: string;
+};
+
 /**
  * Converts an internal user role into the label displayed in the administration interface.
  *
@@ -54,6 +61,16 @@ export default function AdminDashboardPage() {
     const [roleFilter, setRoleFilter] = useState<"" | UserRole>("");
     const [activeFilter, setActiveFilter] = useState<"" | "true" | "false">("");
 
+    const [config, setConfig] = useState<SystemConfiguration>({
+        backendBaseUrl: "",
+        frontendBaseUrl: "",
+        resetPasswordUrl: "",
+        mailFrom: "",
+    });
+
+    const [configLoading, setConfigLoading] = useState(true);
+    const [configSaving, setConfigSaving] = useState(false);
+
     /**
      * Validates that the current session belongs to an administrator before
      * loading the protected dashboard data.
@@ -77,6 +94,7 @@ export default function AdminDashboardPage() {
         }
 
         loadUsers();
+        loadConfiguration();
     }, [router]);
 
     /**
@@ -119,6 +137,37 @@ export default function AdminDashboardPage() {
             }
         } finally {
             setLoading(false);
+        }
+    }
+
+    async function loadConfiguration() {
+        setConfigLoading(true);
+
+        try {
+            const data = await apiFetch<SystemConfiguration>("/admin/configuration");
+            setConfig(data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "No se ha podido cargar la configuración.");
+        } finally {
+            setConfigLoading(false);
+        }
+    }
+
+    async function handleSaveConfiguration() {
+        setConfigSaving(true);
+        setError("");
+
+        try {
+            await apiFetch("/admin/configuration", {
+                method: "PUT",
+                body: JSON.stringify(config),
+            });
+
+            alert("Configuración actualizada correctamente.");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "No se ha podido guardar la configuración.");
+        } finally {
+            setConfigSaving(false);
         }
     }
 
@@ -231,6 +280,85 @@ export default function AdminDashboardPage() {
                     Cerrar sesión
                 </button>
             </div>
+
+            <section className="mb-6 rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-xl shadow-slate-200/70">
+                <h2 className="mb-4 text-xl font-bold text-slate-950">
+                    Configuración de la aplicación
+                </h2>
+
+                {configLoading ? (
+                    <p className="text-sm text-slate-500">Cargando configuración...</p>
+                ) : (
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                            <label className="mb-1 block text-sm font-medium">
+                                URL del servidor backend
+                            </label>
+                            <input
+                                value={config.backendBaseUrl}
+                                onChange={(e) =>
+                                    setConfig({ ...config, backendBaseUrl: e.target.value })
+                                }
+                                className="w-full rounded-xl border px-4 py-3 outline-none"
+                                placeholder="http://localhost:8080"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-sm font-medium">
+                                URL del frontend
+                            </label>
+                            <input
+                                value={config.frontendBaseUrl}
+                                onChange={(e) =>
+                                    setConfig({ ...config, frontendBaseUrl: e.target.value })
+                                }
+                                className="w-full rounded-xl border px-4 py-3 outline-none"
+                                placeholder="http://localhost:3000"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-sm font-medium">
+                                URL de restablecimiento de contraseña
+                            </label>
+                            <input
+                                value={config.resetPasswordUrl}
+                                onChange={(e) =>
+                                    setConfig({ ...config, resetPasswordUrl: e.target.value })
+                                }
+                                className="w-full rounded-xl border px-4 py-3 outline-none"
+                                placeholder="http://localhost:3000/reset-password"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-sm font-medium">
+                                Correo remitente de la aplicación
+                            </label>
+                            <input
+                                value={config.mailFrom}
+                                onChange={(e) =>
+                                    setConfig({ ...config, mailFrom: e.target.value })
+                                }
+                                className="w-full rounded-xl border px-4 py-3 outline-none"
+                                placeholder="plataforma.tfg.directores@gmail.com"
+                            />
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <button
+                                type="button"
+                                onClick={handleSaveConfiguration}
+                                disabled={configSaving}
+                                className="rounded-2xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {configSaving ? "Guardando..." : "Guardar configuración"}
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </section>
 
             <div className="mb-6 flex flex-wrap items-center gap-3 rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-xl shadow-slate-200/70">
                 <input
