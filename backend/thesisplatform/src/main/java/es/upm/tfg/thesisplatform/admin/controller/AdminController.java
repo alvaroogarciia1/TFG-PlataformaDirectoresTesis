@@ -1,12 +1,15 @@
 package es.upm.tfg.thesisplatform.admin.controller;
 
 import es.upm.tfg.thesisplatform.admin.dto.AdminUserDetailResponse;
+import es.upm.tfg.thesisplatform.admin.dto.AdminUserIdentityUpdateRequest;
 import es.upm.tfg.thesisplatform.admin.dto.AdminUserSearchRequest;
 import es.upm.tfg.thesisplatform.admin.dto.AdminUserSummaryResponse;
 import es.upm.tfg.thesisplatform.admin.service.AdminService;
 import es.upm.tfg.thesisplatform.thesisrequest.dto.ThesisRequestResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -102,5 +105,18 @@ public class AdminController {
     @DeleteMapping("/users/{id}")
     public void deleteUser(@PathVariable Long id) {
         adminService.deleteUser(id);
+    }
+
+    /**
+     * Updates the full name and/or email of an account.
+     * @param id identifier of the user
+     * @param request request DTO
+     * @return updated user
+     */
+    @PutMapping("/users/{id}/identity")
+    public ResponseEntity<AdminUserDetailResponse> updateUserIdentity(
+            @PathVariable Long id,
+            @Valid @RequestBody AdminUserIdentityUpdateRequest request) {
+        return ResponseEntity.ok(adminService.updateUserIdentity(id, request));
     }
 }

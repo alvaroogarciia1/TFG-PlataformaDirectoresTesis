@@ -1,11 +1,15 @@
 package es.upm.tfg.thesisplatform.admin.service;
 
 import es.upm.tfg.thesisplatform.admin.dto.AdminUserDetailResponse;
+import es.upm.tfg.thesisplatform.admin.dto.AdminUserIdentityUpdateRequest;
 import es.upm.tfg.thesisplatform.admin.dto.AdminUserSearchRequest;
 import es.upm.tfg.thesisplatform.admin.dto.AdminUserSummaryResponse;
 import es.upm.tfg.thesisplatform.auth.repository.PasswordResetTokenRepository;
+import es.upm.tfg.thesisplatform.exception.EmailAlreadyExistsException;
 import es.upm.tfg.thesisplatform.exception.ForbiddenOperationException;
+import es.upm.tfg.thesisplatform.exception.ProfessorProfileNotFoundException;
 import es.upm.tfg.thesisplatform.exception.ResourceNotFoundException;
+import es.upm.tfg.thesisplatform.exception.StudentProfileNotFoundException;
 import es.upm.tfg.thesisplatform.professor.domain.ProfessorProfile;
 import es.upm.tfg.thesisplatform.professor.dto.ProfessorProfileResponse;
 import es.upm.tfg.thesisplatform.professor.dto.SupervisedThesisResponse;
@@ -390,5 +394,40 @@ public class AdminService {
          */
         private boolean containsIgnoreCase(String source, String query) {
                 return source != null && source.toLowerCase().contains(query);
+        }
+
+        @Transactional
+        public AdminUserDetailResponse updateUserIdentity(Long id, AdminUserIdentityUpdateRequest request) {
+                User user = userRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+                if (!user.getEmail().equalsIgnoreCase(request.email())
+                                && userRepository.existsByEmail(request.email())) {
+                        throw new EmailAlreadyExistsException("Ya existe una cuenta con ese email");
+                }
+
+                user.setEmail(request.email().trim());
+
+                if (user.getRole() == UserRole.STUDENT) {
+                        StudentProfile profile = studentProfileRepository.findByUserId(user.getId())
+                                        .orElseThrow(() -> new StudentProfileNotFoundException(
+                                                        "Perfil de estudiante no encontrado"));
+
+                        profile.setFirstName(request.firstName().trim());
+                        profile.setLastName(request.lastName().trim());
+
+                } else if (user.getRole() == UserRole.PROFESSOR) {
+                        ProfessorProfile profile = professorProfileRepository.findByUserId(user.getId())
+                                        .orElseThrow(() -> new ProfessorProfileNotFoundException(
+                                                        "Perfil de profesor no encontrado"));
+
+                        profile.setFirstName(request.firstName().trim());
+                        profile.setLastName(request.lastName().trim());
+
+                } else {
+                        throw new ForbiddenOperationException("No se pueden modificar los datos de un administrador");
+                }
+
+                return getUserDetail(id);
         }
 }

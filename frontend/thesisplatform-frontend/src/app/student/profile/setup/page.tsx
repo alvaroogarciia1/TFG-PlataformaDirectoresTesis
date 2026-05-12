@@ -146,8 +146,7 @@ export default function StudentProfileSetupPage() {
      */
     const isFormFilled = useMemo(() => {
         const baseFieldsFilled =
-            firstName.trim() !== "" &&
-            lastName.trim() !== "" &&
+            (!isEditMode ? firstName.trim() !== "" && lastName.trim() !== "" : true) &&
             originInstitution.trim() !== "" &&
             motivation.trim() !== "" &&
             proposedThesisTitle.trim() !== "" &&
@@ -400,8 +399,6 @@ export default function StudentProfileSetupPage() {
         await apiFetch("/students/me", {
             method: "PUT",
             body: JSON.stringify({
-                firstName,
-                lastName,
                 originInstitution,
                 motivation,
                 proposedThesisTitle,
@@ -444,8 +441,8 @@ export default function StudentProfileSetupPage() {
 
         const errors: Record<string, string> = {};
 
-        if (!firstName.trim()) errors.firstName = "Introduce el nombre.";
-        if (!lastName.trim()) errors.lastName = "Introduce los apellidos.";
+        if (!isEditMode && !firstName.trim()) errors.firstName = "Introduce el nombre.";
+        if (!isEditMode && !lastName.trim()) errors.lastName = "Introduce los apellidos.";
         if (!originInstitution.trim()) errors.originInstitution = "Introduce la institución de origen.";
         if (!proposedThesisTitle.trim()) errors.proposedThesisTitle = "Introduce un título de tesis.";
         if (!motivation.trim()) errors.motivation = "Introduce la motivación.";
@@ -538,39 +535,43 @@ export default function StudentProfileSetupPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6 rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-xl shadow-slate-200/70">
                 <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">Nombre</label>
-                        <input
-                            className={`w-full rounded-xl border px-3 py-2 ${fieldErrors.firstName ? "border-red-500 bg-red-50" : ""}`}
-                            value={firstName}
-                            onChange={(e) => {
-                                setFirstName(e.target.value);
-                                if (fieldErrors.firstName) {
-                                    setFieldErrors((prev) => ({ ...prev, firstName: "" }));
-                                }
-                            }}
-                        />
-                        {fieldErrors.firstName && (
-                            <p className="mt-1 text-sm text-red-600">{fieldErrors.firstName}</p>
-                        )}
-                    </div>
+                    {!isEditMode && (
+                        <>
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Nombre</label>
+                                <input
+                                    className={`w-full rounded-xl border px-3 py-2 ${fieldErrors.firstName ? "border-red-500 bg-red-50" : ""}`}
+                                    value={firstName}
+                                    onChange={(e) => {
+                                        setFirstName(e.target.value);
+                                        if (fieldErrors.firstName) {
+                                            setFieldErrors((prev) => ({ ...prev, firstName: "" }));
+                                        }
+                                    }}
+                                />
+                                {fieldErrors.firstName && (
+                                    <p className="mt-1 text-sm text-red-600">{fieldErrors.firstName}</p>
+                                )}
+                            </div>
 
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">Apellidos</label>
-                        <input
-                            className={`w-full rounded-xl border px-3 py-2 ${fieldErrors.lastName ? "border-red-500 bg-red-50" : ""}`}
-                            value={lastName}
-                            onChange={(e) => {
-                                setLastName(e.target.value);
-                                if (fieldErrors.lastName) {
-                                    setFieldErrors((prev) => ({ ...prev, lastName: "" }));
-                                }
-                            }}
-                        />
-                        {fieldErrors.lastName && (
-                            <p className="mt-1 text-sm text-red-600">{fieldErrors.lastName}</p>
-                        )}
-                    </div>
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Apellidos</label>
+                                <input
+                                    className={`w-full rounded-xl border px-3 py-2 ${fieldErrors.lastName ? "border-red-500 bg-red-50" : ""}`}
+                                    value={lastName}
+                                    onChange={(e) => {
+                                        setLastName(e.target.value);
+                                        if (fieldErrors.lastName) {
+                                            setFieldErrors((prev) => ({ ...prev, lastName: "" }));
+                                        }
+                                    }}
+                                />
+                                {fieldErrors.lastName && (
+                                    <p className="mt-1 text-sm text-red-600">{fieldErrors.lastName}</p>
+                                )}
+                            </div>
+                        </>
+                    )}
 
                     <div className="md:col-span-2">
                         <label className="mb-1 block text-sm font-medium">Institución de origen</label>

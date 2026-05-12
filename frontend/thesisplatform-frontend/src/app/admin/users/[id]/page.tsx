@@ -106,6 +106,11 @@ export default function AdminUserDetailPage() {
     const [userDetail, setUserDetail] = useState<AdminUserDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [editingIdentity, setEditingIdentity] = useState(false);
+    const [identityFirstName, setIdentityFirstName] = useState("");
+    const [identityLastName, setIdentityLastName] = useState("");
+    const [identityEmail, setIdentityEmail] = useState("");
+    const [savingIdentity, setSavingIdentity] = useState(false);
 
     /**
      * Ensures that only authenticated administrators can access the detail page.
@@ -162,6 +167,50 @@ export default function AdminUserDetailPage() {
             }
         } finally {
             setLoading(false);
+        }
+    }
+
+    function openIdentityEditor() {
+        if (!userDetail) return;
+
+        const firstName =
+            userDetail.studentProfile?.firstName ||
+            userDetail.professorProfile?.firstName ||
+            "";
+
+        const lastName =
+            userDetail.studentProfile?.lastName ||
+            userDetail.professorProfile?.lastName ||
+            "";
+
+        setIdentityFirstName(firstName);
+        setIdentityLastName(lastName);
+        setIdentityEmail(userDetail.email);
+        setEditingIdentity(true);
+    }
+
+    async function handleSaveIdentity() {
+        if (!userDetail) return;
+
+        setSavingIdentity(true);
+        setError("");
+
+        try {
+            await apiFetch(`/admin/users/${userDetail.id}/identity`, {
+                method: "PUT",
+                body: JSON.stringify({
+                    firstName: identityFirstName.trim(),
+                    lastName: identityLastName.trim(),
+                    email: identityEmail.trim(),
+                }),
+            });
+
+            await loadUser();
+            setEditingIdentity(false);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "No se han podido actualizar los datos.");
+        } finally {
+            setSavingIdentity(false);
         }
     }
 
@@ -256,6 +305,16 @@ export default function AdminUserDetailPage() {
                         <p>
                             <strong>Activa:</strong> {userDetail.active ? "Sí" : "No"}
                         </p>
+
+                        <button
+                            type="button"
+                            onClick={openIdentityEditor}
+                            className="mt-3 rounded-2xl bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800"
+                        >
+                            Editar nombre, apellidos y correo
+                        </button>
+
+
                     </div>
 
                     {userDetail.studentProfile && (
@@ -527,6 +586,62 @@ export default function AdminUserDetailPage() {
                     >
                         Volver
                     </button>
+                </div>
+            )}
+
+            {editingIdentity && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+                    <div className="w-full max-w-xl rounded-[2rem] border border-white bg-black p-6 shadow-2xl">
+                        <div className="mb-4 flex items-center justify-between">
+                            <h2 className="text-2xl font-bold text-white">
+                                Editar datos de cuenta
+                            </h2>
+
+                            <button
+                                onClick={() => setEditingIdentity(false)}
+                                className="rounded-xl border border-white px-4 py-2 text-white transition hover:bg-white/10"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+
+                        <div className="grid gap-4">
+                            <input
+                                value={identityFirstName}
+                                onChange={(e) => setIdentityFirstName(e.target.value)}
+                                placeholder="Nombre"
+                                className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder:text-gray-400"
+                            />
+
+                            <input
+                                value={identityLastName}
+                                onChange={(e) => setIdentityLastName(e.target.value)}
+                                placeholder="Apellidos"
+                                className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder:text-gray-400"
+                            />
+
+                            <input
+                                value={identityEmail}
+                                onChange={(e) => setIdentityEmail(e.target.value)}
+                                placeholder="Correo electrónico"
+                                className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder:text-gray-400"
+                            />
+
+                            <button
+                                type="button"
+                                onClick={handleSaveIdentity}
+                                disabled={
+                                    savingIdentity ||
+                                    !identityFirstName.trim() ||
+                                    !identityLastName.trim() ||
+                                    !identityEmail.trim()
+                                }
+                                className="rounded-2xl border border-white bg-white px-6 py-3 font-medium text-black transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {savingIdentity ? "Guardando..." : "Guardar cambios"}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </main>
