@@ -20,7 +20,7 @@ VALUES (
     'http://localhost:8080',
     'http://localhost:3000',
     'http://localhost:3000/reset-password',
-    'plataforma.tfg.directores@gmail.com',
+    'tfgplataforma04@gmail.com',
     'uploads',
     86400000
 );
