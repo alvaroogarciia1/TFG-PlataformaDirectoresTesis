@@ -48,11 +48,11 @@ public class CatalogDataInitializer implements CommandLineRunner {
                 List<DoctoralProgram> programs = List.of(
                                 DoctoralProgram.builder()
                                                 .name("Doctorado en Inteligencia Artificial")
-                                                .institution("UPM")
+                                                .institution("ETSIINF")
                                                 .build(),
                                 DoctoralProgram.builder()
                                                 .name("Doctorado en Software, Sistemas y Computación")
-                                                .institution("UPM")
+                                                .institution("ETSIINF")
                                                 .build());
 
                 doctoralProgramRepository.saveAll(programs);
